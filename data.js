@@ -37,6 +37,90 @@ export const MOCK_USERS = [
     savedPins: ['pin-2', 'pin-3', 'pin-8', 'pin-9', 'pin-12'],
     createdPins: ['pin-2', 'pin-8', 'pin-12'],
     friends: ['creative_mind']
+  },
+  {
+    username: 'design_interior',
+    password: '123',
+    name: 'Студия Уют',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80',
+    bio: 'Студия дизайна интерьеров. Создаем уютные и функциональные пространства для вашей жизни.',
+    followersCount: '12.5k',
+    followingCount: '189',
+    savedPins: [],
+    createdPins: ['pin-1', 'pin-7'],
+    friends: []
+  },
+  {
+    username: 'nature_seeker',
+    password: '123',
+    name: 'Дмитрий Петров',
+    avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=100&auto=format&fit=crop&q=80',
+    bio: 'Исследователь природы и фотограф-пейзажист. Путешествую с камерой в поисках нетронутых уголков.',
+    followersCount: '8.3k',
+    followingCount: '245',
+    savedPins: [],
+    createdPins: ['pin-3', 'pin-9'],
+    friends: []
+  },
+  {
+    username: 'modern_arch',
+    password: '123',
+    name: 'Arch Design',
+    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=100&auto=format&fit=crop&q=80',
+    bio: 'Архитектурное бюро. Современные загородные виллы, минимализм и экологичные концепты.',
+    followersCount: '15.4k',
+    followingCount: '98',
+    savedPins: [],
+    createdPins: ['pin-4'],
+    friends: []
+  },
+  {
+    username: 'chef_italy',
+    password: '123',
+    name: 'Шеф Луиджи',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=80',
+    bio: 'Шеф-повар из Неаполя. Делюсь секретами традиционной итальянской кухни и рецептами идеального теста.',
+    followersCount: '24.1k',
+    followingCount: '512',
+    savedPins: [],
+    createdPins: ['pin-5', 'pin-11'],
+    friends: []
+  },
+  {
+    username: 'art_gallery',
+    password: '123',
+    name: 'Анна Власова',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80',
+    bio: 'Художница и куратор выставок. Флюид-арт, абстракции и современные постеры для дома.',
+    followersCount: '9.7k',
+    followingCount: '380',
+    savedPins: [],
+    createdPins: ['pin-6', 'pin-14'],
+    friends: []
+  },
+  {
+    username: 'sweet_bakery',
+    password: '123',
+    name: 'Пекарня Сладость',
+    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&auto=format&fit=crop&q=80',
+    bio: 'Домашняя кондитерская и пекарня. Воздушные панкейки, нежные круассаны и десерты для хорошего настроения.',
+    followersCount: '11.2k',
+    followingCount: '190',
+    savedPins: [],
+    createdPins: ['pin-10'],
+    friends: []
+  },
+  {
+    username: 'graphic_factory',
+    password: '123',
+    name: 'Ретро Принт',
+    avatar: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100&auto=format&fit=crop&q=80',
+    bio: 'Студия графического дизайна. Создаем стильные ретро-модерн постеры и вдохновляющий винтажный арт.',
+    followersCount: '14.8k',
+    followingCount: '120',
+    savedPins: [],
+    createdPins: ['pin-13', 'pin-15'],
+    friends: []
   }
 ];
 

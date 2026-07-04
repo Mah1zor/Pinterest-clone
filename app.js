@@ -172,6 +172,7 @@ const modalAuthorImg = document.getElementById('modal-author-img');
 const modalAuthorName = document.getElementById('modal-author-name');
 const modalAuthorFollowers = document.getElementById('modal-author-followers');
 const modalFollowBtn = document.getElementById('modal-follow-btn');
+const modalFriendBtn = document.getElementById('modal-friend-btn');
 const modalLikesNum = document.getElementById('modal-likes-num');
 const modalLikeBtn = document.getElementById('modal-like-btn');
 const modalCommentsList = document.getElementById('modal-comments-list');
@@ -1036,6 +1037,11 @@ function saveSettings() {
 
   const oldUsername = state.currentUser.username;
   if (username !== oldUsername) {
+    const targetIdx = state.users.findIndex(u => u.username === oldUsername);
+    if (targetIdx !== -1) {
+      state.users[targetIdx].username = username;
+    }
+
     const oldBoards = localStorage.getItem(`pinterest_boards_${oldUsername}`);
     if (oldBoards) {
       localStorage.setItem(`pinterest_boards_${username}`, oldBoards);
@@ -1149,9 +1155,11 @@ function openPinDetails(pin) {
   const isFollowing = state.followedCreators.has(pin.creator.username);
   if (pin.creator.username === state.currentUser.username) {
     modalFollowBtn.classList.add('hidden');
+    modalFriendBtn.classList.add('hidden');
     modalAuthorFollowers.textContent = `${state.currentUser.followersCount || 0} подписчиков`;
   } else {
     modalFollowBtn.classList.remove('hidden');
+    modalFriendBtn.classList.remove('hidden');
     if (isFollowing) {
       modalFollowBtn.textContent = 'Вы подписаны';
       modalFollowBtn.classList.add('following');
@@ -1160,6 +1168,17 @@ function openPinDetails(pin) {
       modalFollowBtn.textContent = 'Подписаться';
       modalFollowBtn.classList.remove('following');
       modalAuthorFollowers.textContent = '12.5k подписчиков';
+    }
+
+    const isFriend = state.currentUser.friends && state.currentUser.friends.includes(pin.creator.username);
+    if (isFriend) {
+      modalFriendBtn.classList.add('is-friend');
+      modalFriendBtn.querySelector('span').textContent = 'В друзьях';
+      modalFriendBtn.querySelector('i').className = 'fa-solid fa-user-check';
+    } else {
+      modalFriendBtn.classList.remove('is-friend');
+      modalFriendBtn.querySelector('span').textContent = 'В друзья';
+      modalFriendBtn.querySelector('i').className = 'fa-solid fa-user-plus';
     }
   }
 
@@ -1236,6 +1255,58 @@ function toggleFollowCreator() {
     modalAuthorFollowers.textContent = '12.6k подписчиков';
   }
   saveState();
+}
+
+function toggleFriendCreator() {
+  const pin = state.openPin;
+  if (!pin) return;
+
+  const creatorUsername = pin.creator.username;
+  if (creatorUsername === state.currentUser.username) return;
+
+  if (!state.currentUser.friends) state.currentUser.friends = [];
+
+  const isFriend = state.currentUser.friends.includes(creatorUsername);
+
+  let targetUserObj = state.users.find(u => u.username === creatorUsername);
+  if (!targetUserObj) {
+    targetUserObj = {
+      username: creatorUsername,
+      password: '123',
+      name: pin.creator.name,
+      avatar: pin.creator.avatar,
+      bio: 'Автор и вдохновитель на Pinterest.',
+      followersCount: '12.5k',
+      followingCount: '340',
+      savedPins: [],
+      createdPins: [pin.id],
+      friends: []
+    };
+    state.users.push(targetUserObj);
+  }
+
+  if (!targetUserObj.friends) targetUserObj.friends = [];
+
+  if (isFriend) {
+    state.currentUser.friends = state.currentUser.friends.filter(f => f !== creatorUsername);
+    targetUserObj.friends = targetUserObj.friends.filter(f => f !== state.currentUser.username);
+    
+    modalFriendBtn.classList.remove('is-friend');
+    modalFriendBtn.querySelector('span').textContent = 'В друзья';
+    modalFriendBtn.querySelector('i').className = 'fa-solid fa-user-plus';
+  } else {
+    state.currentUser.friends.push(creatorUsername);
+    if (!targetUserObj.friends.includes(state.currentUser.username)) {
+      targetUserObj.friends.push(state.currentUser.username);
+    }
+    
+    modalFriendBtn.classList.add('is-friend');
+    modalFriendBtn.querySelector('span').textContent = 'В друзьях';
+    modalFriendBtn.querySelector('i').className = 'fa-solid fa-user-check';
+  }
+
+  saveState();
+  renderChatsInterface();
 }
 
 function renderCommentsList(comments) {
@@ -1653,6 +1724,7 @@ function setupEventListeners() {
 
   modalLikeBtn.addEventListener('click', toggleLike);
   modalFollowBtn.addEventListener('click', toggleFollowCreator);
+  modalFriendBtn.addEventListener('click', toggleFriendCreator);
 
   modalBoardSelectTrigger.addEventListener('click', (e) => {
     e.stopPropagation();

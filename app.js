@@ -10,10 +10,10 @@ let state = {
   boards: [],
   chats: {},
   followedCreators: new Set(),
-  currentView: 'feed', // 'feed', 'create', 'profile'
+  currentView: 'feed', // 'feed', 'create', 'profile', 'chat'
   activeCategory: 'all',
   searchQuery: '',
-  activeProfileTab: 'saved', // 'saved', 'created', 'chats'
+  activeProfileTab: 'saved', // 'saved', 'created'
   activeBoardId: null, // If viewing a specific board's pins (either in feed or profile)
   openPin: null, // Currently opened pin in modal
   theme: 'light', // 'light' or 'dark'
@@ -148,7 +148,8 @@ function applyTheme(theme) {
 const views = {
   feed: document.getElementById('feed-view'),
   create: document.getElementById('create-view'),
-  profile: document.getElementById('profile-view')
+  profile: document.getElementById('profile-view'),
+  chat: document.getElementById('chat-view')
 };
 
 const navLinks = {
@@ -157,6 +158,8 @@ const navLinks = {
   profileImg: document.getElementById('nav-profile-img'),
   logoHome: document.getElementById('logo-home-trigger')
 };
+
+const headerChatBtn = document.getElementById('header-chat-btn');
 
 // Search elements
 const searchInput = document.getElementById('search-input');
@@ -173,10 +176,8 @@ const pinsGridBoardPins = document.getElementById('pins-grid-board-pins');
 // Profile tabs and section toggles
 const tabSaved = document.getElementById('tab-saved');
 const tabCreated = document.getElementById('tab-created');
-const tabChats = document.getElementById('tab-chats');
 const savedSection = document.getElementById('profile-saved-section');
 const createdSection = document.getElementById('profile-created-section');
-const chatsSection = document.getElementById('profile-chats-section');
 const boardDetailsView = document.getElementById('board-details-view');
 const boardBackBtn = document.getElementById('board-back-btn');
 const currentBoardTitle = document.getElementById('current-board-title');
@@ -236,7 +237,7 @@ const authToggleText = document.getElementById('auth-toggle-text');
 const authTitle = document.getElementById('auth-title');
 const authErrorMsg = document.getElementById('auth-error-msg');
 
-// PROFILE CHATS VIEW ELEMENTS
+// DEDICATED CHAT & FRIENDS VIEW ELEMENTS
 const profileFriendsList = document.getElementById('profile-friends-list');
 const addFriendInput = document.getElementById('add-friend-input');
 const addFriendBtn = document.getElementById('add-friend-btn');
@@ -276,6 +277,7 @@ const sideBoardsList = document.getElementById('side-boards-list');
 const sideNavHome = document.getElementById('side-nav-home');
 const sideNavCreate = document.getElementById('side-nav-create');
 const sideNavProfile = document.getElementById('side-nav-profile');
+const sideNavChat = document.getElementById('side-nav-chat');
 
 let uploadedImageBase64 = null; 
 
@@ -293,6 +295,7 @@ function switchView(viewName) {
 
   navLinks.home.classList.remove('active');
   navLinks.create.classList.remove('active');
+  headerChatBtn.classList.remove('active');
   
   if (viewName === 'feed') {
     navLinks.home.classList.add('active');
@@ -308,28 +311,33 @@ function switchView(viewName) {
     renderProfile();
   }
 
-  // Close fly-out drawers upon route switch
+  if (viewName === 'chat') {
+    headerChatBtn.classList.add('active');
+    renderChatsInterface();
+  }
+
+  // Close fly-out drawers
   closeLeftSidebar();
   closeRightSidebar();
   
-  // Update sidebar active classes
+  // Highlight active side navigation lists
   syncSidebarCatalogHighlights();
 }
 
-// Left Settings Sidebar Drawer Controls
+// Left Settings Sidebar Mobile toggles
 function toggleLeftSidebar() {
   leftSettingsSidebar.classList.toggle('active');
   leftSidebarBackdrop.classList.toggle('active');
   
   if (leftSettingsSidebar.classList.contains('active')) {
-    closeRightSidebar(); // Automatically close catalog if opening settings
+    closeRightSidebar();
   }
 }
 
 function openLeftSidebar() {
   leftSettingsSidebar.classList.add('active');
   leftSidebarBackdrop.classList.add('active');
-  closeRightSidebar(); // Avoid double drawers overlap
+  closeRightSidebar();
 }
 
 function closeLeftSidebar() {
@@ -337,13 +345,13 @@ function closeLeftSidebar() {
   leftSidebarBackdrop.classList.remove('active');
 }
 
-// Right Catalog Sidebar Drawer Controls
+// Right Catalog Sidebar Mobile toggles
 function toggleRightSidebar() {
   rightCatalogSidebar.classList.toggle('active');
   rightSidebarBackdrop.classList.toggle('active');
 
   if (rightCatalogSidebar.classList.contains('active')) {
-    closeLeftSidebar(); // Automatically close settings if opening catalog
+    closeLeftSidebar();
   }
 }
 
@@ -358,7 +366,7 @@ function closeRightSidebar() {
   rightSidebarBackdrop.classList.remove('active');
 }
 
-// Sync selection highlights on the right catalog sidebar
+// Highlight the currently active sidebar navigation item
 function syncSidebarCatalogHighlights() {
   document.querySelectorAll('.catalog-item').forEach(el => el.classList.remove('active'));
 
@@ -378,10 +386,12 @@ function syncSidebarCatalogHighlights() {
     sideNavCreate.classList.add('active');
   } else if (state.currentView === 'profile') {
     sideNavProfile.classList.add('active');
+  } else if (state.currentView === 'chat') {
+    sideNavChat.classList.add('active');
   }
 }
 
-// UX settings helper: slide open settings drawer and focus name field
+// UX Settings Action Helper (slides open Settings panel)
 function triggerSettingsAction() {
   openLeftSidebar();
   setTimeout(() => {
@@ -478,7 +488,7 @@ function loginUserSuccess() {
   
   navLinks.profileImg.querySelector('img').src = state.currentUser.avatar;
 
-  setupSettingsPage(); // Bind settings inputs
+  setupSettingsPage(); // Initialize settings properties
   renderSidebarCategories();
   renderSidebarBoards();
   renderFeed();
@@ -497,7 +507,7 @@ function handleLogout() {
   closeLeftSidebar();
 }
 
-// --- Render Catalog Sidebar Categories & Boards ---
+// --- Render Sidebar Categories & Boards ---
 function renderSidebarCategories() {
   sideCategoriesList.innerHTML = '';
   
@@ -528,7 +538,7 @@ function renderSidebarCategories() {
       clearSearchBtn.classList.remove('visible');
 
       switchView('feed');
-      closeRightSidebar(); // Auto-dismiss catalog sidebar on selection
+      closeRightSidebar();
     });
 
     sideCategoriesList.appendChild(btn);
@@ -560,7 +570,7 @@ function renderSidebarBoards() {
       clearSearchBtn.classList.remove('visible');
 
       switchView('feed');
-      closeRightSidebar(); // Auto-dismiss catalog sidebar on selection
+      closeRightSidebar();
     });
 
     sideBoardsList.appendChild(btn);
@@ -682,7 +692,7 @@ function toggleSavePinDirect(pinId, buttonEl) {
   renderSidebarBoards();
 }
 
-// --- Render Feed (Filtering by category or search) ---
+// --- Render Feed (Filtering by category, board or search) ---
 function renderFeed() {
   let pinsToRender = [...state.pins];
 
@@ -759,11 +769,9 @@ function renderProfile() {
 
   tabSaved.classList.remove('active');
   tabCreated.classList.remove('active');
-  tabChats.classList.remove('active');
   
   savedSection.classList.add('hidden');
   createdSection.classList.add('hidden');
-  chatsSection.classList.add('hidden');
   boardDetailsView.classList.add('hidden');
 
   if (state.activeProfileTab === 'saved') {
@@ -779,10 +787,6 @@ function renderProfile() {
     tabCreated.classList.add('active');
     createdSection.classList.remove('hidden');
     renderCreatedPins();
-  } else if (state.activeProfileTab === 'chats') {
-    tabChats.classList.add('active');
-    chatsSection.classList.remove('hidden');
-    renderChatsInterface();
   }
 }
 
@@ -849,13 +853,13 @@ function renderCreatedPins() {
   renderPinsGrid(userPins, pinsGridCreated);
 }
 
-// --- Profile Chats Interface Operations ---
+// --- Chats Interface Operations (Now runs inside dedicated View) ---
 function renderChatsInterface() {
   profileFriendsList.innerHTML = '';
   const friends = state.currentUser.friends || [];
   
   if (friends.length === 0) {
-    profileFriendsList.innerHTML = '<div style="font-size: 13px; color: var(--gray-muted); padding: 12px 0;">У вас пока нет друзей. Добавьте кого-нибудь по имени пользователя!</div>';
+    profileFriendsList.innerHTML = '<div style="font-size: 13px; color: var(--gray-muted); padding: 12px 0; text-align: center;">У вас пока нет друзей. Добавьте кого-нибудь по имени пользователя!</div>';
   } else {
     friends.forEach(fUsername => {
       const friendUserObj = state.users.find(u => u.username === fUsername);
@@ -1583,6 +1587,8 @@ function setupEventListeners() {
     switchView('feed');
   });
 
+  headerChatBtn.addEventListener('click', () => switchView('chat'));
+
   // Settings fixed panel listeners
   saveSettingsBtn.addEventListener('click', saveSettings);
   logoutBtn.addEventListener('click', handleLogout);
@@ -1602,7 +1608,7 @@ function setupEventListeners() {
     renderSidebarCategories();
     renderSidebarBoards();
     switchView('feed');
-    closeRightSidebar(); // Auto-dismiss catalog sidebar on selection
+    closeRightSidebar();
   });
 
   sideNavCreate.addEventListener('click', () => {
@@ -1614,6 +1620,11 @@ function setupEventListeners() {
     state.activeProfileTab = 'saved';
     state.activeBoardId = null;
     switchView('profile');
+    closeRightSidebar();
+  });
+
+  sideNavChat.addEventListener('click', () => {
+    switchView('chat');
     closeRightSidebar();
   });
 
@@ -1734,12 +1745,6 @@ function setupEventListeners() {
     renderProfile();
   });
 
-  tabChats.addEventListener('click', () => {
-    state.activeProfileTab = 'chats';
-    state.activeBoardId = null;
-    renderProfile();
-  });
-
   boardBackBtn.addEventListener('click', () => {
     state.activeBoardId = null;
     renderProfile();
@@ -1801,6 +1806,7 @@ function setupEventListeners() {
 }
 
 // --- App Initialization ---
+// Initialize app modules
 function initApp() {
   initLocalStorage();
   setupEventListeners();
@@ -1808,7 +1814,7 @@ function initApp() {
   if (state.isLoggedIn) {
     authOverlay.classList.add('hidden');
     navLinks.profileImg.querySelector('img').src = state.currentUser.avatar;
-    setupSettingsPage(); // Bind settings left-side properties
+    setupSettingsPage(); // Initialize left settings parameters
     renderSidebarCategories();
     renderSidebarBoards();
     renderFeed();

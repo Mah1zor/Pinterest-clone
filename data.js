@@ -450,6 +450,261 @@ export const INITIAL_PINS = [
     link: 'https://example.com/minimalist-posters',
     date: '2026-06-05',
     comments: []
+  },
+  {
+    id: 'pin-16',
+    title: 'Каньоны Аризоны',
+    description: 'Величественные песчаные волны Антилопы Каньон в лучах полуденного солнца. Природная скульптура.',
+    image: 'https://images.unsplash.com/photo-1527838832700-50592524df73?w=600&auto=format&fit=crop&q=80',
+    category: 'Путешествия',
+    creator: {
+      username: 'wanderlust_travel',
+      name: 'Мария Смирнова',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'
+    },
+    likes: 742,
+    likedByMe: false,
+    link: 'https://example.com/arizona-canyons',
+    date: '2026-07-03',
+    comments: []
+  },
+  {
+    id: 'pin-17',
+    title: 'Кухня в стиле джапанди',
+    description: 'Минималистичный дизайн кухни, объединяющий японский аскетизм и скандинавский комфорт. Тёплое дерево и натуральный камень.',
+    image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=600&auto=format&fit=crop&q=80',
+    category: 'Интерьер',
+    creator: {
+      username: 'design_interior',
+      name: 'Студия Уют',
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80'
+    },
+    likes: 418,
+    likedByMe: false,
+    link: 'https://example.com/japandi-kitchen',
+    date: '2026-06-25',
+    comments: []
+  },
+  {
+    id: 'pin-18',
+    title: 'Сочный стейк рибай гриль',
+    description: 'Стейк идеальной прожарки medium rare с чесноком, веточкой розмарина и крупной морской солью. Мужская классика.',
+    image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80',
+    category: 'Еда',
+    creator: {
+      username: 'sweet_bakery',
+      name: 'Пекарня Сладость',
+      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&auto=format&fit=crop&q=80'
+    },
+    likes: 312,
+    likedByMe: false,
+    link: 'https://example.com/steak-cooking',
+    date: '2026-07-04',
+    comments: []
+  },
+  {
+    id: 'pin-19',
+    title: 'Долина Йосемити под звездами',
+    description: 'Ночной пейзаж Йосемитского национального парка с видом на Эль-Капитан. Млечный путь во всей красе.',
+    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600&auto=format&fit=crop&q=80',
+    category: 'Природа',
+    creator: {
+      username: 'nature_seeker',
+      name: 'Дмитрий Петров',
+      avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=100&auto=format&fit=crop&q=80'
+    },
+    likes: 1890,
+    likedByMe: false,
+    link: 'https://example.com/yosemite-stars',
+    date: '2026-07-03',
+    comments: []
+  },
+  {
+    id: 'pin-20',
+    title: 'Футуристическая винтовая лестница',
+    description: 'Архитектурный ракурс снизу вверх. Спиральные бетонные линии и игра тени в футуристичном музее.',
+    image: 'https://images.unsplash.com/photo-1518005020951-eccb494ad742?w=600&auto=format&fit=crop&q=80',
+    category: 'Архитектура',
+    creator: {
+      username: 'modern_arch',
+      name: 'Arch Design',
+      avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=100&auto=format&fit=crop&q=80'
+    },
+    likes: 562,
+    likedByMe: false,
+    link: 'https://example.com/spiral-staircase',
+    date: '2026-07-01',
+    comments: []
+  },
+  {
+    id: 'pin-21',
+    title: 'Текстурная абстракция акрилом',
+    description: 'Макросъемка картины с золотой поталью и объёмными пастами. Роскошная деталь современного лофта.',
+    image: 'https://images.unsplash.com/photo-1580136579312-94651dfd596d?w=600&auto=format&fit=crop&q=80',
+    category: 'Арт',
+    creator: {
+      username: 'art_gallery',
+      name: 'Анна Власова',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80'
+    },
+    likes: 289,
+    likedByMe: false,
+    link: 'https://example.com/acrylic-texture',
+    date: '2026-06-30',
+    comments: []
+  },
+  {
+    id: 'pin-22',
+    title: 'Зеленые террасы Тосканы',
+    description: 'Бархатные изумрудные холмы Италии в лучах утреннего тумана. Знаменитые кипарисы вдоль дороги.',
+    image: 'https://images.unsplash.com/photo-1500624767791-00dcc994a43e?w=600&auto=format&fit=crop&q=80',
+    category: 'Природа',
+    creator: {
+      username: 'nature_seeker',
+      name: 'Дмитрий Петров',
+      avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=100&auto=format&fit=crop&q=80'
+    },
+    likes: 904,
+    likedByMe: false,
+    link: 'https://example.com/tuscany-hills',
+    date: '2026-06-20',
+    comments: []
+  },
+  {
+    id: 'pin-23',
+    title: 'Загородная резиденция в лесу',
+    description: 'Экологичная архитектура: дом из стекла и бруса, полностью интегрированный в окружающий хвойный бор.',
+    image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&auto=format&fit=crop&q=80',
+    category: 'Архитектура',
+    creator: {
+      username: 'modern_arch',
+      name: 'Arch Design',
+      avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=100&auto=format&fit=crop&q=80'
+    },
+    likes: 1205,
+    likedByMe: false,
+    link: 'https://example.com/forest-house',
+    date: '2026-07-04',
+    comments: []
+  },
+  {
+    id: 'pin-24',
+    title: 'Road Trip по дорогам Исландии',
+    description: 'Аренда внедорожника и бесконечное приключение вдоль черных вулканических пляжей и водопадов.',
+    image: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&auto=format&fit=crop&q=80',
+    category: 'Путешествия',
+    creator: {
+      username: 'wanderlust_travel',
+      name: 'Мария Смирнова',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'
+    },
+    likes: 1542,
+    likedByMe: false,
+    link: 'https://example.com/iceland-roadtrip',
+    date: '2026-07-02',
+    comments: []
+  },
+  {
+    id: 'pin-25',
+    title: 'Зеленый боул с авокадо и лососем',
+    description: 'Идея полезного завтрака: слабосоленый лосось, спелый авокадо, яйцо пашот и горсть шпината с семенами кунжута.',
+    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&auto=format&fit=crop&q=80',
+    category: 'Еда',
+    creator: {
+      username: 'food_lover',
+      name: 'Шеф Луиджи',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=80'
+    },
+    likes: 671,
+    likedByMe: false,
+    link: 'https://example.com/healthy-bowl',
+    date: '2026-06-29',
+    comments: []
+  },
+  {
+    id: 'pin-26',
+    title: 'Эскиз карандашом в скетчбуке',
+    description: 'Анатомический рисунок рук. Детальная проработка теней и линий в творческом блокноте художника.',
+    image: 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=600&auto=format&fit=crop&q=80',
+    category: 'Арт',
+    creator: {
+      username: 'art_gallery',
+      name: 'Анна Власова',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80'
+    },
+    likes: 319,
+    likedByMe: false,
+    link: 'https://example.com/sketchbook-hands',
+    date: '2026-06-18',
+    comments: []
+  },
+  {
+    id: 'pin-27',
+    title: 'Солнечная спальня с растениями',
+    description: 'Комната с большими окнами, обилием монстер и фикусов, деревянной мебелью. Максимальное слияние с природой.',
+    image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600&auto=format&fit=crop&q=80',
+    category: 'Интерьер',
+    creator: {
+      username: 'design_interior',
+      name: 'Студия Уют',
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80'
+    },
+    likes: 839,
+    likedByMe: false,
+    link: 'https://example.com/plants-bedroom',
+    date: '2026-06-27',
+    comments: []
+  },
+  {
+    id: 'pin-28',
+    title: 'Вид на Эйфелеву башню через улочку',
+    description: 'Уютная парижская улочка, классические балконы с цветами и символ Франции на заднем плане.',
+    image: 'https://images.unsplash.com/photo-1431274172761-fca41d930114?w=600&auto=format&fit=crop&q=80',
+    category: 'Путешествия',
+    creator: {
+      username: 'wanderlust_travel',
+      name: 'Мария Смирнова',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'
+    },
+    likes: 1980,
+    likedByMe: false,
+    link: 'https://example.com/paris-street',
+    date: '2026-07-04',
+    comments: []
+  },
+  {
+    id: 'pin-29',
+    title: 'Флюидный золотой мрамор',
+    description: 'Картина с золотыми прожилками и плавными разводами черной, белой и кремовой краски. Премиум арт.',
+    image: 'https://images.unsplash.com/photo-1549490349-8643362247b5?w=600&auto=format&fit=crop&q=80',
+    category: 'Арт',
+    creator: {
+      username: 'art_gallery',
+      name: 'Анна Власова',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80'
+    },
+    likes: 672,
+    likedByMe: false,
+    link: 'https://example.com/gold-fluid-marble',
+    date: '2026-06-29',
+    comments: []
+  },
+  {
+    id: 'pin-30',
+    title: 'Хрустящая пицца пепперони',
+    description: 'Горячая пицца прямо из дровяной печи. Тянущаяся моцарелла, острые ломтики салями пепперони и пряный соус.',
+    image: 'https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?w=600&auto=format&fit=crop&q=80',
+    category: 'Еда',
+    creator: {
+      username: 'chef_italy',
+      name: 'Шеф Луиджи',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=80'
+    },
+    likes: 1420,
+    likedByMe: false,
+    link: 'https://example.com/pepperoni-pizza',
+    date: '2026-07-04',
+    comments: []
   }
 ];
 

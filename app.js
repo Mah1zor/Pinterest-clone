@@ -1,6 +1,100 @@
 // Pinterest Clone - Core Application Logic
 import { CURRENT_USER, MOCK_USERS, INITIAL_BOARDS, INITIAL_PINS, INITIAL_CHATS, SUGGESTED_SEARCHES, CATEGORIES } from './data.js';
 
+// --- Localizations Map ---
+const LOCALES = {
+  ru: {
+    navHome: 'Главная',
+    navCreate: 'Создать',
+    popularSearches: 'Популярные поисковые запросы',
+    settingsTitle: 'Настройки профиля',
+    settingsAvatar: 'Ссылка на фото',
+    settingsName: 'Публичное имя',
+    settingsUsername: 'Имя пользователя',
+    settingsBio: 'О себе',
+    settingsSave: 'Сохранить',
+    settingsLogout: 'Выйти',
+    friendsTitle: 'Мои друзья',
+    friendsAddPlaceholder: 'Добавить по @username...',
+    recFriendsTitle: 'Рекомендации',
+    catalogTitle: 'Каталог',
+    catMenu: 'Меню',
+    catCategories: 'Категории',
+    catBoards: 'Мои доски',
+    siteSettingsTitle: 'Настройки сайта',
+    siteTheme: 'Тёмная тема',
+    siteLang: 'Язык',
+    siteDensity: 'Разметка сетки',
+    siteDensityCompact: 'Компакт',
+    siteDensityCozy: 'Стандарт',
+    siteDensitySpacious: 'Широкая',
+    siteReset: 'Сбросить данные',
+    createDragtext: 'Перетащите сюда изображение или кликните',
+    createSubtext: 'Рекомендуется использовать файлы JPG/PNG менее 20 МБ',
+    createUrl: 'Или укажите прямую ссылку на изображение:',
+    createBoardSelect: 'Выбрать доску',
+    createCatSelect: 'Категория',
+    chatTopTitle: 'Ваши сообщения',
+    chatTopSubtitle: 'Общайтесь с друзьями и делитесь идеями',
+    chatPlaceholder: 'Выберите друга в левой колонке, чтобы начать общение',
+    loginUsername: 'Имя пользователя (username)',
+    loginPassword: 'Пароль',
+    loginSubmit: 'Войти',
+    regName: 'Ваше имя (для отображения)',
+    regUsername: 'Имя пользователя (уникальный @username)',
+    regPassword: 'Пароль',
+    regSubmit: 'Зарегистрироваться',
+    savedTab: 'Сохраненные',
+    createdTab: 'Созданные',
+    shareProfile: 'Поделиться профилем'
+  },
+  en: {
+    navHome: 'Home',
+    navCreate: 'Create',
+    popularSearches: 'Popular Search Queries',
+    settingsTitle: 'Profile Settings',
+    settingsAvatar: 'Avatar URL',
+    settingsName: 'Display Name',
+    settingsUsername: 'Username',
+    settingsBio: 'Bio',
+    settingsSave: 'Save',
+    settingsLogout: 'Log Out',
+    friendsTitle: 'My Friends',
+    friendsAddPlaceholder: 'Add by @username...',
+    recFriendsTitle: 'Recommendations',
+    catalogTitle: 'Catalog',
+    catMenu: 'Menu',
+    catCategories: 'Categories',
+    catBoards: 'My Boards',
+    siteSettingsTitle: 'Site Settings',
+    siteTheme: 'Dark Theme',
+    siteLang: 'Language',
+    siteDensity: 'Grid Spacing',
+    siteDensityCompact: 'Compact',
+    siteDensityCozy: 'Standard',
+    siteDensitySpacious: 'Spacious',
+    siteReset: 'Reset App Data',
+    createDragtext: 'Drag and drop an image or click to upload',
+    createSubtext: 'High quality JPG/PNG files under 20 MB recommended',
+    createUrl: 'Or enter direct image link address URL:',
+    createBoardSelect: 'Select Board',
+    createCatSelect: 'Category',
+    chatTopTitle: 'Your Messages',
+    chatTopSubtitle: 'Chat with friends and share inspiration',
+    chatPlaceholder: 'Select a friend from the left sidebar to start chatting',
+    loginUsername: 'Username',
+    loginPassword: 'Password',
+    loginSubmit: 'Log In',
+    regName: 'Display Name',
+    regUsername: 'Username (unique @username)',
+    regPassword: 'Password',
+    regSubmit: 'Register',
+    savedTab: 'Saved',
+    createdTab: 'Created',
+    shareProfile: 'Share Profile'
+  }
+};
+
 // --- State Management ---
 let state = {
   isLoggedIn: false,
@@ -17,6 +111,8 @@ let state = {
   activeBoardId: null, // If viewing a specific board's pins (either in feed or profile)
   openPin: null, // Currently opened pin in modal
   theme: 'light', // 'light' or 'dark'
+  lang: 'ru', // 'ru' or 'en'
+  density: 'cozy', // 'compact', 'cozy', 'spacious'
   activeChatFriend: null
 };
 
@@ -42,14 +138,24 @@ function initLocalStorage() {
   if (!localStorage.getItem('pinterest_chats')) {
     localStorage.setItem('pinterest_chats', JSON.stringify(INITIAL_CHATS));
   }
+  if (!localStorage.getItem('pinterest_lang')) {
+    localStorage.setItem('pinterest_lang', 'ru');
+  }
+  if (!localStorage.getItem('pinterest_density')) {
+    localStorage.setItem('pinterest_density', 'cozy');
+  }
 
   state.pins = JSON.parse(localStorage.getItem('pinterest_pins'));
   state.users = JSON.parse(localStorage.getItem('pinterest_users'));
   state.theme = localStorage.getItem('pinterest_theme');
   state.isLoggedIn = localStorage.getItem('pinterest_logged_in') === 'true';
   state.chats = JSON.parse(localStorage.getItem('pinterest_chats'));
+  state.lang = localStorage.getItem('pinterest_lang');
+  state.density = localStorage.getItem('pinterest_density');
 
   applyTheme(state.theme);
+  setGridDensity(state.density);
+  applyLocale(state.lang);
 
   if (state.isLoggedIn) {
     const savedUser = localStorage.getItem('pinterest_current_user');
@@ -96,6 +202,8 @@ function saveState() {
   localStorage.setItem('pinterest_logged_in', state.isLoggedIn ? 'true' : 'false');
   localStorage.setItem('pinterest_theme', state.theme);
   localStorage.setItem('pinterest_chats', JSON.stringify(state.chats));
+  localStorage.setItem('pinterest_lang', state.lang);
+  localStorage.setItem('pinterest_density', state.density);
 
   if (state.isLoggedIn && state.currentUser.username) {
     localStorage.setItem('pinterest_current_user', JSON.stringify(state.currentUser));
@@ -120,6 +228,166 @@ function applyTheme(theme) {
   } else {
     document.documentElement.removeAttribute('data-theme');
   }
+}
+
+// --- Grid Density Switcher ---
+function setGridDensity(density) {
+  state.density = density;
+  document.body.classList.remove('density-compact', 'density-spacious');
+  
+  if (density === 'compact') {
+    document.body.classList.add('density-compact');
+  } else if (density === 'spacious') {
+    document.body.classList.add('density-spacious');
+  }
+
+  // Highlight active button indicator on density controls
+  const btnCompact = document.getElementById('density-compact-btn');
+  const btnCozy = document.getElementById('density-cozy-btn');
+  const btnSpacious = document.getElementById('density-spacious-btn');
+  
+  if (btnCompact && btnCozy && btnSpacious) {
+    btnCompact.classList.remove('active');
+    btnCozy.classList.remove('active');
+    btnSpacious.classList.remove('active');
+
+    if (density === 'compact') btnCompact.classList.add('active');
+    if (density === 'cozy') btnCozy.classList.add('active');
+    if (density === 'spacious') btnSpacious.classList.add('active');
+  }
+}
+
+// --- Localizations Apply Logic ---
+function applyLocale(lang) {
+  state.lang = lang;
+  const dict = LOCALES[lang] || LOCALES.ru;
+
+  // Header Navs
+  const navHomeBtn = document.getElementById('nav-home');
+  const navCreateBtn = document.getElementById('nav-create');
+  const sideNavHomeBtn = document.getElementById('side-nav-home');
+  const sideNavCreateBtn = document.getElementById('side-nav-create');
+  const sideNavProfileBtn = document.getElementById('side-nav-profile');
+  const sideNavChatBtn = document.getElementById('side-nav-chat');
+
+  if (navHomeBtn) navHomeBtn.textContent = dict.navHome;
+  if (navCreateBtn) navCreateBtn.textContent = dict.navCreate;
+  if (sideNavHomeBtn) sideNavHomeBtn.querySelector('span').textContent = dict.navHome;
+  if (sideNavCreateBtn) sideNavCreateBtn.querySelector('span').textContent = dict.navCreate;
+  if (sideNavProfileBtn) sideNavProfileBtn.querySelector('span').textContent = dict.savedTab;
+  if (sideNavChatBtn) sideNavChatBtn.querySelector('span').textContent = dict.navHome === 'Home' ? 'Chat' : 'Чат';
+
+  // Popular searches
+  const popularSearches = document.getElementById('label-popular-searches');
+  if (popularSearches) popularSearches.textContent = dict.popularSearches;
+
+  // Profile Settings form labels
+  const settingsTitle = document.getElementById('label-settings-title');
+  const labelAvatar = document.getElementById('label-settings-avatar');
+  const labelName = document.getElementById('label-settings-name');
+  const labelUsername = document.getElementById('label-settings-username');
+  const labelBio = document.getElementById('label-settings-bio');
+  const saveBtn = document.getElementById('save-settings-btn');
+  const logoutBtn = document.getElementById('logout-btn');
+
+  if (settingsTitle) settingsTitle.textContent = dict.settingsTitle;
+  if (labelAvatar) labelAvatar.textContent = dict.settingsAvatar;
+  if (labelName) labelName.textContent = dict.settingsName;
+  if (labelUsername) labelUsername.textContent = dict.settingsUsername;
+  if (labelBio) labelBio.textContent = dict.settingsBio;
+  if (saveBtn) saveBtn.textContent = dict.settingsSave;
+  if (logoutBtn) logoutBtn.textContent = dict.settingsLogout;
+
+  // Chat View Friends
+  const friendsTitle = document.getElementById('label-friends-title');
+  const recFriendsTitle = document.getElementById('label-rec-friends-title');
+  const addFriendInputEl = document.getElementById('add-friend-input');
+
+  if (friendsTitle) friendsTitle.textContent = dict.friendsTitle;
+  if (recFriendsTitle) recFriendsTitle.textContent = dict.recFriendsTitle;
+  if (addFriendInputEl) addFriendInputEl.placeholder = dict.friendsAddPlaceholder;
+
+  // Left sidebar headings
+  const catalogTitle = document.getElementById('label-catalog-title');
+  const catMenu = document.getElementById('label-cat-menu');
+  const catCategories = document.getElementById('label-cat-categories');
+  const catBoards = document.getElementById('label-cat-boards');
+
+  if (catalogTitle) catalogTitle.textContent = dict.catalogTitle;
+  if (catMenu) catMenu.textContent = dict.catMenu;
+  if (catCategories) catCategories.textContent = dict.catCategories;
+  if (catBoards) catBoards.textContent = dict.catBoards;
+
+  // Site settings panel
+  const siteSettingsTitle = document.getElementById('label-site-settings-title');
+  const siteTheme = document.getElementById('label-site-theme');
+  const siteLang = document.getElementById('label-site-lang');
+  const siteDensity = document.getElementById('label-site-density');
+  const siteReset = document.getElementById('label-site-reset');
+  const compactBtn = document.getElementById('density-compact-btn');
+  const cozyBtn = document.getElementById('density-cozy-btn');
+  const spaciousBtn = document.getElementById('density-spacious-btn');
+
+  if (siteSettingsTitle) siteSettingsTitle.textContent = dict.siteSettingsTitle;
+  if (siteTheme) siteTheme.textContent = dict.siteTheme;
+  if (siteLang) siteLang.textContent = dict.siteLang;
+  if (siteDensity) siteDensity.textContent = dict.siteDensity;
+  if (siteReset) siteReset.textContent = dict.siteReset;
+  if (compactBtn) compactBtn.textContent = dict.siteDensityCompact;
+  if (cozyBtn) cozyBtn.textContent = dict.siteDensityCozy;
+  if (spaciousBtn) spaciousBtn.textContent = dict.siteDensitySpacious;
+
+  // Create page
+  const createDragtext = document.getElementById('label-create-dragtext');
+  const createSubtext = document.getElementById('label-create-subtext');
+  const createUrl = document.getElementById('label-create-url');
+  const createBoardSelect = document.getElementById('label-create-board-select');
+  const createCatSelect = document.getElementById('label-create-cat-select');
+
+  if (createDragtext) createDragtext.textContent = dict.createDragtext;
+  if (createSubtext) createSubtext.textContent = dict.createSubtext;
+  if (createUrl) createUrl.textContent = dict.createUrl;
+  if (createBoardSelect) createBoardSelect.textContent = dict.createBoardSelect;
+  if (createCatSelect) createCatSelect.textContent = dict.createCatSelect;
+
+  // Chat window labels
+  const chatTopTitle = document.getElementById('label-chat-top-title');
+  const chatTopSubtitle = document.getElementById('label-chat-top-subtitle');
+  const chatPlaceholderText = document.getElementById('label-chat-placeholder');
+
+  if (chatTopTitle) chatTopTitle.textContent = dict.chatTopTitle;
+  if (chatTopSubtitle) chatTopSubtitle.textContent = dict.chatTopSubtitle;
+  if (chatPlaceholderText) chatPlaceholderText.textContent = dict.chatPlaceholder;
+
+  // Auth Card
+  const labelLoginUsername = document.getElementById('label-login-username');
+  const labelLoginPassword = document.getElementById('label-login-password');
+  const btnLoginSubmit = document.getElementById('btn-login-submit');
+  const labelRegName = document.getElementById('label-reg-name');
+  const labelRegUsername = document.getElementById('label-reg-username');
+  const labelRegPassword = document.getElementById('label-reg-password');
+  const btnRegSubmit = document.getElementById('btn-reg-submit');
+
+  if (labelLoginUsername) labelLoginUsername.textContent = dict.loginUsername;
+  if (labelLoginPassword) labelLoginPassword.textContent = dict.loginPassword;
+  if (btnLoginSubmit) btnLoginSubmit.textContent = dict.loginSubmit;
+  if (labelRegName) labelRegName.textContent = dict.regName;
+  if (labelRegUsername) labelRegUsername.textContent = dict.regUsername;
+  if (labelRegPassword) labelRegPassword.textContent = dict.regPassword;
+  if (btnRegSubmit) btnRegSubmit.textContent = dict.regSubmit;
+
+  // Profile tabs
+  const profileTabSaved = document.getElementById('tab-saved');
+  const profileTabCreated = document.getElementById('tab-created');
+  const profileShareBtn = document.getElementById('profile-share-btn');
+
+  if (profileTabSaved) profileTabSaved.textContent = dict.savedTab;
+  if (profileTabCreated) profileTabCreated.textContent = dict.createdTab;
+  if (profileShareBtn) profileShareBtn.textContent = dict.shareProfile;
+
+  // Language dropdown select state
+  const langSelect = document.getElementById('site-lang-select');
+  if (langSelect) langSelect.value = lang;
 }
 
 // --- DOM Query Elements ---
@@ -214,12 +482,14 @@ const authToggleText = document.getElementById('auth-toggle-text');
 const authTitle = document.getElementById('auth-title');
 const authErrorMsg = document.getElementById('auth-error-msg');
 
-// DEDICATED CHAT & FRIENDS VIEW ELEMENTS
+// CHAT VIEW FRIENDS LIST ELEMENTS
 const profileFriendsList = document.getElementById('profile-friends-list');
 const profileRecommendationsList = document.getElementById('profile-recommendations-list');
 const addFriendInput = document.getElementById('add-friend-input');
 const addFriendBtn = document.getElementById('add-friend-btn');
 const addFriendError = document.getElementById('add-friend-error');
+
+// ACTIVE CHAT PANEL (INSIDE CENTER COLUMN)
 const chatPlaceholder = document.getElementById('chat-placeholder');
 const chatActivePanel = document.getElementById('chat-active-panel');
 const chatFriendAvatar = document.getElementById('chat-friend-avatar');
@@ -229,11 +499,21 @@ const chatMessagesLog = document.getElementById('chat-messages-log');
 const chatMessageInput = document.getElementById('chat-message-input');
 const chatSendBtn = document.getElementById('chat-send-btn');
 
-// LEFT SIDEBAR: PROFILE SETTINGS ELEMENTS
-const leftSettingsSidebar = document.getElementById('left-settings-sidebar');
+// LEFT SIDEBAR: CATALOG ELEMENTS
+const leftCatalogSidebar = document.getElementById('left-catalog-sidebar');
 const leftSidebarBackdrop = document.getElementById('left-sidebar-backdrop');
-const mobileSettingsToggle = document.getElementById('mobile-settings-toggle');
+const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
 const leftDrawerCloseBtn = document.getElementById('left-drawer-close');
+const sideCategoriesList = document.getElementById('side-categories-list');
+const sideBoardsList = document.getElementById('side-boards-list');
+
+// Right sidebar shortcuts (Catalog Navigation is on the left sidebar!)
+const sideNavHome = document.getElementById('side-nav-home');
+const sideNavCreate = document.getElementById('side-nav-create');
+const sideNavProfile = document.getElementById('side-nav-profile');
+const sideNavChat = document.getElementById('side-nav-chat');
+
+// PROFILE EDIT FIELDS (INSIDE PROFILE PAGE VIEW)
 const settingsAvatarUrl = document.getElementById('settings-avatar-url');
 const settingsAvatarPreview = document.getElementById('settings-avatar-preview');
 const settingsDisplayName = document.getElementById('settings-display-name');
@@ -243,20 +523,6 @@ const themeToggleCheck = document.getElementById('theme-toggle-check');
 const saveSettingsBtn = document.getElementById('save-settings-btn');
 const logoutBtn = document.getElementById('logout-btn');
 const settingsUsernameError = document.getElementById('settings-username-error');
-
-// RIGHT SIDEBAR: NAVIGATION & CATALOG ELEMENTS
-const rightCatalogSidebar = document.getElementById('right-catalog-sidebar');
-const rightSidebarBackdrop = document.getElementById('right-sidebar-backdrop');
-const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-const rightDrawerCloseBtn = document.getElementById('right-drawer-close');
-const sideCategoriesList = document.getElementById('side-categories-list');
-const sideBoardsList = document.getElementById('side-boards-list');
-
-// Right sidebar shortcuts
-const sideNavHome = document.getElementById('side-nav-home');
-const sideNavCreate = document.getElementById('side-nav-create');
-const sideNavProfile = document.getElementById('side-nav-profile');
-const sideNavChat = document.getElementById('side-nav-chat');
 
 let uploadedImageBase64 = null; 
 
@@ -295,54 +561,27 @@ function switchView(viewName) {
     renderChatsInterface();
   }
 
-  // Close fly-out drawers
+  // Close slide drawers if under 1024px
   closeLeftSidebar();
-  closeRightSidebar();
   
   // Highlight active side navigation lists
   syncSidebarCatalogHighlights();
 }
 
-// Left Settings Sidebar Mobile toggles
+// Left Catalog Sidebar Mobile toggles
 function toggleLeftSidebar() {
-  leftSettingsSidebar.classList.toggle('active');
+  leftCatalogSidebar.classList.toggle('active');
   leftSidebarBackdrop.classList.toggle('active');
-  
-  if (leftSettingsSidebar.classList.contains('active')) {
-    closeRightSidebar();
-  }
 }
 
 function openLeftSidebar() {
-  leftSettingsSidebar.classList.add('active');
+  leftCatalogSidebar.classList.add('active');
   leftSidebarBackdrop.classList.add('active');
-  closeRightSidebar();
 }
 
 function closeLeftSidebar() {
-  leftSettingsSidebar.classList.remove('active');
+  leftCatalogSidebar.classList.remove('active');
   leftSidebarBackdrop.classList.remove('active');
-}
-
-// Right Catalog Sidebar Mobile toggles
-function toggleRightSidebar() {
-  rightCatalogSidebar.classList.toggle('active');
-  rightSidebarBackdrop.classList.toggle('active');
-
-  if (rightCatalogSidebar.classList.contains('active')) {
-    closeLeftSidebar();
-  }
-}
-
-function openRightSidebar() {
-  rightCatalogSidebar.classList.add('active');
-  rightSidebarBackdrop.classList.add('active');
-  closeLeftSidebar();
-}
-
-function closeRightSidebar() {
-  rightCatalogSidebar.classList.remove('active');
-  rightSidebarBackdrop.classList.remove('active');
 }
 
 // Highlight the currently active sidebar navigation item
@@ -370,11 +609,9 @@ function syncSidebarCatalogHighlights() {
   }
 }
 
-// UX Settings Action Helper (slides open Settings panel on mobile, focuses input on desktop)
+// UX Settings Action Helper (routes user to Profile page, focuses username input field)
 function triggerSettingsAction() {
-  if (window.innerWidth <= 1024) {
-    openLeftSidebar();
-  }
+  switchView('profile');
   setTimeout(() => {
     settingsDisplayName.focus();
   }, 300);
@@ -386,15 +623,15 @@ function toggleAuthForm() {
   if (loginForm.classList.contains('hidden')) {
     loginForm.classList.remove('hidden');
     registerForm.classList.add('hidden');
-    authTitle.textContent = 'Добро пожаловать в Pinterest';
-    authToggleText.textContent = 'Впервые на Pinterest?';
-    authToggleBtn.textContent = 'Создать аккаунт';
+    authTitle.textContent = state.lang === 'ru' ? 'Добро пожаловать в Pinterest' : 'Welcome to Pinterest';
+    authToggleText.textContent = state.lang === 'ru' ? 'Впервые на Pinterest?' : 'New to Pinterest?';
+    authToggleBtn.textContent = state.lang === 'ru' ? 'Создать аккаунт' : 'Create account';
   } else {
     loginForm.classList.add('hidden');
     registerForm.classList.remove('hidden');
-    authTitle.textContent = 'Создайте аккаунт';
-    authToggleText.textContent = 'Уже есть аккаунт?';
-    authToggleBtn.textContent = 'Войти';
+    authTitle.textContent = state.lang === 'ru' ? 'Создайте аккаунт' : 'Create account';
+    authToggleText.textContent = state.lang === 'ru' ? 'Уже есть аккаунт?' : 'Already have account?';
+    authToggleBtn.textContent = state.lang === 'ru' ? 'Войти' : 'Log In';
   }
 }
 
@@ -413,7 +650,7 @@ function handleLoginSubmit(e) {
     saveState();
     loginUserSuccess();
   } else {
-    authErrorMsg.textContent = 'Неверное имя пользователя или пароль';
+    authErrorMsg.textContent = state.lang === 'ru' ? 'Неверное имя пользователя или пароль' : 'Invalid username or password';
     authErrorMsg.classList.remove('hidden');
   }
 }
@@ -426,14 +663,14 @@ function handleRegisterSubmit(e) {
   const password = document.getElementById('reg-password').value;
 
   if (username.length < 3) {
-    authErrorMsg.textContent = 'Имя пользователя должно быть не менее 3 символов (латиница)';
+    authErrorMsg.textContent = state.lang === 'ru' ? 'Имя пользователя должно быть не менее 3 символов (латиница)' : 'Username must be at least 3 chars long';
     authErrorMsg.classList.remove('hidden');
     return;
   }
 
   const exists = state.users.some(u => u.username === username);
   if (exists) {
-    authErrorMsg.textContent = 'Это имя пользователя уже занято';
+    authErrorMsg.textContent = state.lang === 'ru' ? 'Это имя пользователя уже занято' : 'Username already taken';
     authErrorMsg.classList.remove('hidden');
     return;
   }
@@ -443,7 +680,7 @@ function handleRegisterSubmit(e) {
     password: password,
     name: name,
     avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
-    bio: 'Новый вдохновляющийся пользователь.',
+    bio: state.lang === 'ru' ? 'Новый вдохновляющийся пользователь.' : 'New inspiration user.',
     followersCount: '0',
     followingCount: '0',
     savedPins: [],
@@ -469,10 +706,11 @@ function loginUserSuccess() {
   
   navLinks.profileImg.querySelector('img').src = state.currentUser.avatar;
 
-  setupSettingsPage(); // Initialize settings properties
+  setupSettingsPage(); // Initialize settings inputs
   renderSidebarCategories();
   renderSidebarBoards();
   renderFeed();
+  renderChatsInterface(); 
   switchView('feed');
 }
 
@@ -508,7 +746,7 @@ function renderSidebarCategories() {
     btn.setAttribute('data-cat-id', cat.id);
     btn.innerHTML = `
       <i class="fa-solid ${categoryIcons[cat.id] || 'fa-tag'} catalog-item-icon"></i>
-      <span>${cat.name}</span>
+      <span>${state.lang === 'ru' ? cat.name : (cat.id === 'all' ? 'All' : cat.tag)}</span>
     `;
 
     btn.addEventListener('click', () => {
@@ -519,7 +757,7 @@ function renderSidebarCategories() {
       clearSearchBtn.classList.remove('visible');
 
       switchView('feed');
-      closeRightSidebar();
+      closeLeftSidebar();
     });
 
     sideCategoriesList.appendChild(btn);
@@ -530,7 +768,7 @@ function renderSidebarBoards() {
   sideBoardsList.innerHTML = '';
 
   if (state.boards.length === 0) {
-    sideBoardsList.innerHTML = '<div style="font-size: 13px; color: var(--gray-muted); padding-left: 12px;">Нет досок</div>';
+    sideBoardsList.innerHTML = `<div style="font-size: 13px; color: var(--gray-muted); padding-left: 12px;">${state.lang === 'ru' ? 'Нет досок' : 'No boards'}</div>`;
     return;
   }
 
@@ -551,7 +789,7 @@ function renderSidebarBoards() {
       clearSearchBtn.classList.remove('visible');
 
       switchView('feed');
-      closeRightSidebar();
+      closeLeftSidebar();
     });
 
     sideBoardsList.appendChild(btn);
@@ -565,8 +803,8 @@ function renderPinsGrid(pinsToRender, gridElement) {
     gridElement.innerHTML = `
       <div style="grid-column: 1/-1; text-align: center; padding: 60px 0; color: var(--gray-muted); width: 100%;">
         <i class="fa-solid fa-compass" style="font-size: 40px; margin-bottom: 16px;"></i>
-        <p style="font-size: 18px; font-weight: 500;">Ничего не найдено</p>
-        <p style="font-size: 14px; margin-top: 8px;">Попробуйте использовать другие ключевые слова или сбросьте категорию</p>
+        <p style="font-size: 18px; font-weight: 500;">${state.lang === 'ru' ? 'Ничего не найдено' : 'Nothing found'}</p>
+        <p style="font-size: 14px; margin-top: 8px;">${state.lang === 'ru' ? 'Попробуйте сбросить фильтры' : 'Try searching another keywords'}</p>
       </div>`;
     return;
   }
@@ -578,7 +816,7 @@ function renderPinsGrid(pinsToRender, gridElement) {
 
     const isSaved = state.currentUser.savedPins ? state.currentUser.savedPins.includes(pin.id) : false;
     const savedBoard = state.boards.find(b => b.pinIds.includes(pin.id));
-    const boardName = savedBoard ? savedBoard.name : 'Идеи для дома';
+    const boardName = savedBoard ? savedBoard.name : (state.lang === 'ru' ? 'Идеи для дома' : 'Home ideas');
 
     card.innerHTML = `
       <div class="pin-card-media-wrapper">
@@ -586,7 +824,7 @@ function renderPinsGrid(pinsToRender, gridElement) {
         <div class="pin-card-overlay">
           <div class="overlay-top">
             <button class="overlay-board-btn">${boardName}</button>
-            <button class="overlay-save-btn ${isSaved ? 'saved' : ''}">${isSaved ? 'Сохранено' : 'Сохранить'}</button>
+            <button class="overlay-save-btn ${isSaved ? 'saved' : ''}">${isSaved ? (state.lang === 'ru' ? 'Сохранено' : 'Saved') : (state.lang === 'ru' ? 'Сохранить' : 'Save')}</button>
           </div>
           <div class="overlay-bottom">
             ${pin.link ? `
@@ -596,10 +834,10 @@ function renderPinsGrid(pinsToRender, gridElement) {
               </a>
             ` : '<div></div>'}
             <div class="overlay-actions">
-              <button class="overlay-action-btn share-action-btn" title="Поделиться">
+              <button class="overlay-action-btn share-action-btn" title="${state.lang === 'ru' ? 'Поделиться' : 'Share'}">
                 <i class="fa-solid fa-arrow-up-from-bracket"></i>
               </button>
-              <button class="overlay-action-btn menu-action-btn" title="Опции">
+              <button class="overlay-action-btn menu-action-btn" title="${state.lang === 'ru' ? 'Опции' : 'Options'}">
                 <i class="fa-solid fa-ellipsis"></i>
               </button>
             </div>
@@ -626,7 +864,7 @@ function renderPinsGrid(pinsToRender, gridElement) {
         }
         if (clickOverlayButton.classList.contains('share-action-btn')) {
           navigator.clipboard.writeText(window.location.href).then(() => {
-            alert('Ссылка скопирована в буфер обмена!');
+            alert(state.lang === 'ru' ? 'Ссылка скопирована в буфер обмена!' : 'Link copied to clipboard!');
           });
         }
         return;
@@ -648,7 +886,7 @@ function toggleSavePinDirect(pinId, buttonEl) {
     state.boards.forEach(b => {
       b.pinIds = b.pinIds.filter(id => id !== pinId);
     });
-    buttonEl.textContent = 'Сохранить';
+    buttonEl.textContent = state.lang === 'ru' ? 'Сохранить' : 'Save';
     buttonEl.classList.remove('saved');
   } else {
     user.savedPins.push(pinId);
@@ -657,7 +895,7 @@ function toggleSavePinDirect(pinId, buttonEl) {
         state.boards[0].pinIds.push(pinId);
       }
     }
-    buttonEl.textContent = 'Сохранено';
+    buttonEl.textContent = state.lang === 'ru' ? 'Сохранено' : 'Saved';
     buttonEl.classList.add('saved');
   }
   
@@ -744,9 +982,9 @@ function renderProfile() {
   document.getElementById('profile-avatar-img').src = user.avatar;
   document.getElementById('profile-display-name').textContent = user.name;
   document.getElementById('profile-username').textContent = `@${user.username}`;
-  document.getElementById('profile-bio').textContent = user.bio || 'Нет описания.';
-  document.getElementById('profile-followers-count').textContent = `${user.followersCount || 0} подписчиков`;
-  document.getElementById('profile-following-count').textContent = `${user.followingCount || 0} подписок`;
+  document.getElementById('profile-bio').textContent = user.bio || (state.lang === 'ru' ? 'Нет описания.' : 'No bio.');
+  document.getElementById('profile-followers-count').textContent = state.lang === 'ru' ? `${user.followersCount || 0} подписчиков` : `${user.followersCount || 0} followers`;
+  document.getElementById('profile-following-count').textContent = state.lang === 'ru' ? `${user.followingCount || 0} подписок` : `${user.followingCount || 0} following`;
 
   tabSaved.classList.remove('active');
   tabCreated.classList.remove('active');
@@ -754,6 +992,8 @@ function renderProfile() {
   savedSection.classList.add('hidden');
   createdSection.classList.add('hidden');
   boardDetailsView.classList.add('hidden');
+
+  setupSettingsPage(); // Render values in editable profile details form
 
   if (state.activeProfileTab === 'saved') {
     tabSaved.classList.add('active');
@@ -775,7 +1015,7 @@ function renderBoards() {
   boardsGridSaved.innerHTML = '';
   
   if (state.boards.length === 0) {
-    boardsGridSaved.innerHTML = '<div style="text-align:center; grid-column:1/-1; padding: 40px; color: var(--gray-muted); width: 100%;">Нет досок. Создайте свою первую доску!</div>';
+    boardsGridSaved.innerHTML = `<div style="text-align:center; grid-column:1/-1; padding: 40px; color: var(--gray-muted); width: 100%;">${state.lang === 'ru' ? 'Нет досок. Создайте свою первую доску!' : 'No boards. Create your first board!'}</div>`;
     return;
   }
 
@@ -805,7 +1045,7 @@ function renderBoards() {
       </div>
       <div class="board-card-info">
         <div class="board-card-title">${board.name}</div>
-        <div class="board-card-count">${board.pinIds.length} пинов</div>
+        <div class="board-card-count">${board.pinIds.length} ${state.lang === 'ru' ? 'пинов' : 'pins'}</div>
       </div>
     `;
 
@@ -823,7 +1063,7 @@ function renderBoardDetails(boardId) {
   if (!board) return;
 
   currentBoardTitle.textContent = board.name;
-  currentBoardCount.textContent = `${board.pinIds.length} пинов`;
+  currentBoardCount.textContent = `${board.pinIds.length} ${state.lang === 'ru' ? 'пинов' : 'pins'}`;
 
   const boardPins = state.pins.filter(pin => board.pinIds.includes(pin.id));
   renderPinsGrid(boardPins, pinsGridBoardPins);
@@ -834,13 +1074,13 @@ function renderCreatedPins() {
   renderPinsGrid(userPins, pinsGridCreated);
 }
 
-// --- Chats Interface Operations (Now runs inside dedicated View) ---
+// --- Chats Interface Operations (Left Sidebar inside dedicated View & Chat log) ---
 function renderChatsInterface() {
   profileFriendsList.innerHTML = '';
   const friends = state.currentUser.friends || [];
   
   if (friends.length === 0) {
-    profileFriendsList.innerHTML = '<div style="font-size: 13px; color: var(--gray-muted); padding: 12px 0; text-align: center;">У вас пока нет друзей. Добавьте кого-нибудь по имени пользователя!</div>';
+    profileFriendsList.innerHTML = `<div style="font-size: 12px; color: var(--gray-muted); padding: 8px 0; text-align: center;">${state.lang === 'ru' ? 'Друзей пока нет' : 'No friends yet'}</div>`;
   } else {
     friends.forEach(fUsername => {
       const friendUserObj = state.users.find(u => u.username === fUsername);
@@ -849,12 +1089,12 @@ function renderChatsInterface() {
       const item = document.createElement('div');
       item.className = `friend-item ${state.activeChatFriend === fUsername ? 'active' : ''}`;
       item.innerHTML = `
-        <div class="friend-avatar">
+        <div class="friend-avatar" style="width: 32px; height: 32px;">
           <img src="${friendUserObj.avatar}" alt="${friendUserObj.name}">
         </div>
         <div class="friend-info">
-          <div class="friend-name">${friendUserObj.name}</div>
-          <div class="friend-username">@${friendUserObj.username}</div>
+          <div class="friend-name" style="font-size: 13px;">${friendUserObj.name}</div>
+          <div class="friend-username" style="font-size: 11px;">@${friendUserObj.username}</div>
         </div>
       `;
 
@@ -862,7 +1102,12 @@ function renderChatsInterface() {
         state.activeChatFriend = fUsername;
         document.querySelectorAll('.friend-item').forEach(el => el.classList.remove('active'));
         item.classList.add('active');
-        openActiveChat(friendUserObj);
+        
+        if (state.currentView !== 'chat') {
+          switchView('chat');
+        } else {
+          openActiveChat(friendUserObj);
+        }
       });
 
       profileFriendsList.appendChild(item);
@@ -878,21 +1123,21 @@ function renderChatsInterface() {
   );
 
   if (recUsers.length === 0) {
-    profileRecommendationsList.innerHTML = '<div style="font-size: 12px; color: var(--gray-muted); padding: 8px 0; text-align: center;">Рекомендаций нет</div>';
+    profileRecommendationsList.innerHTML = `<div style="font-size: 11px; color: var(--gray-muted); padding: 4px 0; text-align: center;">${state.lang === 'ru' ? 'Рекомендаций нет' : 'No recommendations'}</div>`;
   } else {
     recUsers.forEach(u => {
       const item = document.createElement('div');
       item.className = 'friend-item';
       item.style.cursor = 'default';
       item.innerHTML = `
-        <div class="friend-avatar">
+        <div class="friend-avatar" style="width: 30px; height: 30px;">
           <img src="${u.avatar}" alt="${u.name}">
         </div>
         <div class="friend-info" style="flex-grow: 1; overflow: hidden;">
-          <div class="friend-name" style="font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${u.name}</div>
-          <div class="friend-username" style="font-size: 11px;">@${u.username}</div>
+          <div class="friend-name" style="font-size: 12px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${u.name}</div>
+          <div class="friend-username" style="font-size: 10px;">@${u.username}</div>
         </div>
-        <button class="profile-btn primary add-rec-friend-btn" style="padding: 6px 10px; font-size: 11px; border-radius: 12px; height: auto; flex-shrink: 0; min-width: unset; width: auto; margin-left: 8px;" title="Добавить друга">
+        <button class="profile-btn primary add-rec-friend-btn" style="padding: 4px 8px; font-size: 10px; border-radius: 8px; height: auto; flex-shrink: 0; min-width: unset; width: auto; margin-left: 8px;" title="${state.lang === 'ru' ? 'Добавить друга' : 'Add friend'}">
           <i class="fa-solid fa-plus"></i>
         </button>
       `;
@@ -906,35 +1151,19 @@ function renderChatsInterface() {
     });
   }
 
-  if (state.activeChatFriend) {
-    const friendObj = state.users.find(u => u.username === state.activeChatFriend);
-    if (friendObj) {
-      openActiveChat(friendObj);
+  if (state.currentView === 'chat') {
+    if (state.activeChatFriend) {
+      const friendObj = state.users.find(u => u.username === state.activeChatFriend);
+      if (friendObj) {
+        openActiveChat(friendObj);
+      } else {
+        state.activeChatFriend = null;
+        showChatPlaceholder();
+      }
     } else {
-      state.activeChatFriend = null;
       showChatPlaceholder();
     }
-  } else {
-    showChatPlaceholder();
   }
-}
-
-function addFriendDirectly(username) {
-  if (!state.currentUser.friends) state.currentUser.friends = [];
-  if (!state.currentUser.friends.includes(username)) {
-    state.currentUser.friends.push(username);
-  }
-
-  const targetIdx = state.users.findIndex(u => u.username === username);
-  if (targetIdx !== -1) {
-    if (!state.users[targetIdx].friends) state.users[targetIdx].friends = [];
-    if (!state.users[targetIdx].friends.includes(state.currentUser.username)) {
-      state.users[targetIdx].friends.push(state.currentUser.username);
-    }
-  }
-
-  saveState();
-  renderChatsInterface();
 }
 
 function showChatPlaceholder() {
@@ -942,6 +1171,7 @@ function showChatPlaceholder() {
   chatActivePanel.classList.add('hidden');
 }
 
+// Open active chat log
 function openActiveChat(friend) {
   chatPlaceholder.classList.add('hidden');
   chatActivePanel.classList.remove('hidden');
@@ -959,7 +1189,7 @@ function renderChatHistory(friendUsername) {
   const thread = state.chats[key] || [];
 
   if (thread.length === 0) {
-    chatMessagesLog.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--gray-muted); font-size: 13px; font-style: italic;">Начало беседы. Напишите приветствие!</div>';
+    chatMessagesLog.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--gray-muted); font-size: 12px; font-style: italic;">${state.lang === 'ru' ? 'Начало беседы. Напишите приветствие!' : 'Conversation start. Type hello!'}</div>`;
     return;
   }
 
@@ -1012,21 +1242,21 @@ function addFriendByUsername() {
   if (fUsername === '') return;
 
   if (fUsername === state.currentUser.username) {
-    addFriendError.textContent = 'Нельзя добавить себя в друзья';
+    addFriendError.textContent = state.lang === 'ru' ? 'Нельзя добавить себя в друзья' : 'Cannot add yourself';
     addFriendError.classList.remove('hidden');
     return;
   }
 
   const targetUserObj = state.users.find(u => u.username === fUsername);
   if (!targetUserObj) {
-    addFriendError.textContent = 'Пользователь не найден';
+    addFriendError.textContent = state.lang === 'ru' ? 'Пользователь не найден' : 'User not found';
     addFriendError.classList.remove('hidden');
     return;
   }
 
   if (!state.currentUser.friends) state.currentUser.friends = [];
   if (state.currentUser.friends.includes(fUsername)) {
-    addFriendError.textContent = 'Этот пользователь уже в вашем списке друзей';
+    addFriendError.textContent = state.lang === 'ru' ? 'Этот пользователь уже в вашем списке друзей' : 'Already in friends list';
     addFriendError.classList.remove('hidden');
     return;
   }
@@ -1043,6 +1273,24 @@ function addFriendByUsername() {
 
   saveState();
   addFriendInput.value = '';
+  renderChatsInterface();
+}
+
+function addFriendDirectly(username) {
+  if (!state.currentUser.friends) state.currentUser.friends = [];
+  if (!state.currentUser.friends.includes(username)) {
+    state.currentUser.friends.push(username);
+  }
+
+  const targetIdx = state.users.findIndex(u => u.username === username);
+  if (targetIdx !== -1) {
+    if (!state.users[targetIdx].friends) state.users[targetIdx].friends = [];
+    if (!state.users[targetIdx].friends.includes(state.currentUser.username)) {
+      state.users[targetIdx].friends.push(state.currentUser.username);
+    }
+  }
+
+  saveState();
   renderChatsInterface();
 }
 
@@ -1110,7 +1358,7 @@ function saveSettings() {
   const isDark = themeToggleCheck.checked;
 
   if (name === '' || username === '') {
-    alert('Имя и имя пользователя обязательны для заполнения!');
+    alert(state.lang === 'ru' ? 'Имя и имя пользователя обязательны!' : 'Name and username are required!');
     return;
   }
 
@@ -1212,13 +1460,11 @@ function saveSettings() {
   renderSidebarCategories();
   renderSidebarBoards();
 
-  closeLeftSidebar();
-
   if (state.currentView === 'profile') {
     renderProfile();
   }
 
-  alert('Настройки профиля успешно сохранены!');
+  alert(state.lang === 'ru' ? 'Настройки профиля успешно сохранены!' : 'Profile settings saved successfully!');
 }
 
 // --- Pin Detail Modal Actions ---
@@ -1229,7 +1475,7 @@ function openPinDetails(pin) {
 
   modalImg.src = pin.image;
   modalTitle.textContent = pin.title;
-  modalDescription.textContent = pin.description || 'Описание отсутствует.';
+  modalDescription.textContent = pin.description || (state.lang === 'ru' ? 'Описание отсутствует.' : 'No description.');
   
   if (pin.link) {
     modalWebsiteLink.href = pin.link;
@@ -1245,17 +1491,17 @@ function openPinDetails(pin) {
   const isFollowing = state.followedCreators.has(pin.creator.username);
   if (pin.creator.username === state.currentUser.username) {
     modalFollowBtn.classList.add('hidden');
-    modalAuthorFollowers.textContent = `${state.currentUser.followersCount || 0} подписчиков`;
+    modalAuthorFollowers.textContent = state.lang === 'ru' ? `${state.currentUser.followersCount || 0} подписчиков` : `${state.currentUser.followersCount || 0} followers`;
   } else {
     modalFollowBtn.classList.remove('hidden');
     if (isFollowing) {
-      modalFollowBtn.textContent = 'Вы подписаны';
+      modalFollowBtn.textContent = state.lang === 'ru' ? 'Вы подписаны' : 'Following';
       modalFollowBtn.classList.add('following');
-      modalAuthorFollowers.textContent = '12.6k подписчиков';
+      modalAuthorFollowers.textContent = state.lang === 'ru' ? '12.6k подписчиков' : '12.6k followers';
     } else {
-      modalFollowBtn.textContent = 'Подписаться';
+      modalFollowBtn.textContent = state.lang === 'ru' ? 'Подписаться' : 'Follow';
       modalFollowBtn.classList.remove('following');
-      modalAuthorFollowers.textContent = '12.5k подписчиков';
+      modalAuthorFollowers.textContent = state.lang === 'ru' ? '12.5k подписчиков' : '12.5k followers';
     }
   }
 
@@ -1322,14 +1568,14 @@ function toggleFollowCreator() {
   const creatorUsername = pin.creator.username;
   if (state.followedCreators.has(creatorUsername)) {
     state.followedCreators.delete(creatorUsername);
-    modalFollowBtn.textContent = 'Подписаться';
+    modalFollowBtn.textContent = state.lang === 'ru' ? 'Подписаться' : 'Follow';
     modalFollowBtn.classList.remove('following');
-    modalAuthorFollowers.textContent = '12.5k подписчиков';
+    modalAuthorFollowers.textContent = state.lang === 'ru' ? '12.5k подписчиков' : '12.5k followers';
   } else {
     state.followedCreators.add(creatorUsername);
-    modalFollowBtn.textContent = 'Вы подписаны';
+    modalFollowBtn.textContent = state.lang === 'ru' ? 'Вы подписаны' : 'Following';
     modalFollowBtn.classList.add('following');
-    modalAuthorFollowers.textContent = '12.6k подписчиков';
+    modalAuthorFollowers.textContent = state.lang === 'ru' ? '12.6k подписчиков' : '12.6k followers';
   }
   saveState();
 }
@@ -1337,7 +1583,7 @@ function toggleFollowCreator() {
 function renderCommentsList(comments) {
   modalCommentsList.innerHTML = '';
   if (!comments || comments.length === 0) {
-    modalCommentsList.innerHTML = '<div class="no-comments-msg">Комментариев пока нет. Напишите первым!</div>';
+    modalCommentsList.innerHTML = `<div class="no-comments-msg">${state.lang === 'ru' ? 'Комментариев пока нет. Напишите первым!' : 'No comments yet. Be first to comment!'}</div>`;
     return;
   }
 
@@ -1395,12 +1641,12 @@ function renderModalBoardDropdown(pin) {
   
   if (containingBoard) {
     modalSelectedBoardName.textContent = containingBoard.name;
-    modalSaveBtn.textContent = 'Сохранено';
+    modalSaveBtn.textContent = state.lang === 'ru' ? 'Сохранено' : 'Saved';
     modalSaveBtn.classList.add('saved');
   } else {
     const defaultBoard = state.boards.length > 0 ? state.boards[0] : null;
-    modalSelectedBoardName.textContent = defaultBoard ? defaultBoard.name : 'Создать доску...';
-    modalSaveBtn.textContent = 'Сохранить';
+    modalSelectedBoardName.textContent = defaultBoard ? defaultBoard.name : (state.lang === 'ru' ? 'Создать доску...' : 'Create board...');
+    modalSaveBtn.textContent = state.lang === 'ru' ? 'Сохранить' : 'Save';
     modalSaveBtn.classList.remove('saved');
   }
 
@@ -1426,7 +1672,7 @@ function renderModalBoardDropdown(pin) {
   createOption.className = 'board-dropdown-item create-board-option';
   createOption.innerHTML = `
     <i class="fa-solid fa-plus"></i>
-    <span>Создать доску</span>
+    <span>${state.lang === 'ru' ? 'Создать доску' : 'Create board'}</span>
   `;
   createOption.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -1454,7 +1700,7 @@ function savePinToBoard(pinId, boardId) {
     user.savedPins.push(pinId);
   }
 
-  modalSaveBtn.textContent = 'Сохранено';
+  modalSaveBtn.textContent = state.lang === 'ru' ? 'Сохранено' : 'Saved';
   modalSaveBtn.classList.add('saved');
 
   saveState();
@@ -1472,9 +1718,9 @@ function handleMainModalSaveBtn() {
     state.boards.forEach(b => {
       b.pinIds = b.pinIds.filter(id => id !== pin.id);
     });
-    modalSaveBtn.textContent = 'Сохранить';
+    modalSaveBtn.textContent = state.lang === 'ru' ? 'Сохранить' : 'Save';
     modalSaveBtn.classList.remove('saved');
-    modalSelectedBoardName.textContent = state.boards.length > 0 ? state.boards[0].name : 'Выберите доску';
+    modalSelectedBoardName.textContent = state.boards.length > 0 ? state.boards[0].name : (state.lang === 'ru' ? 'Выберите доску' : 'Select board');
   } else {
     let targetBoard = state.boards.find(b => b.name === modalSelectedBoardName.textContent);
     if (!targetBoard && state.boards.length > 0) {
@@ -1484,12 +1730,12 @@ function handleMainModalSaveBtn() {
     if (targetBoard) {
       savePinToBoard(pin.id, targetBoard.id);
     } else {
-      const defaultBoard = { id: `board-${state.currentUser.username}-default`, name: 'Идеи для дома', pinIds: [pin.id] };
+      const defaultBoard = { id: `board-${state.currentUser.username}-default`, name: state.lang === 'ru' ? 'Идеи для дома' : 'Home ideas', pinIds: [pin.id] };
       state.boards.push(defaultBoard);
       if (!state.currentUser.savedPins) state.currentUser.savedPins = [];
       state.currentUser.savedPins.push(pin.id);
       modalSelectedBoardName.textContent = defaultBoard.name;
-      modalSaveBtn.textContent = 'Сохранено';
+      modalSaveBtn.textContent = state.lang === 'ru' ? 'Сохранено' : 'Saved';
       modalSaveBtn.classList.add('saved');
       saveState();
     }
@@ -1509,7 +1755,7 @@ function setupCreatePinPage() {
 
   const optCreate = document.createElement('option');
   optCreate.value = 'CREATE_NEW_BOARD_VAL';
-  optCreate.textContent = '+ Создать новую доску...';
+  optCreate.textContent = state.lang === 'ru' ? '+ Создать новую доску...' : '+ Create new board...';
   pinBoardSelect.appendChild(optCreate);
 
   pinTitleInput.value = '';
@@ -1521,6 +1767,10 @@ function setupCreatePinPage() {
   previewImg.classList.remove('visible');
   previewChangeOverlay.classList.remove('visible');
   uploadedImageBase64 = null;
+
+  pinTitleInput.placeholder = state.lang === 'ru' ? 'Добавьте название' : 'Add title';
+  pinDescInput.placeholder = state.lang === 'ru' ? 'Расскажите всем, о чем ваш пин...' : 'Tell everyone about your pin...';
+  pinLinkInput.placeholder = state.lang === 'ru' ? 'Добавьте ссылку на сайт' : 'Add destination link';
 }
 
 function handleFileSelect(e) {
@@ -1562,11 +1812,11 @@ function publishPin() {
   const image = uploadedImageBase64 || imageUrlInput.value.trim();
 
   if (!image) {
-    alert('Пожалуйста, выберите изображение или вставьте ссылку на него.');
+    alert(state.lang === 'ru' ? 'Выберите изображение!' : 'Select image first!');
     return;
   }
   if (!title) {
-    alert('Введите название вашего пина.');
+    alert(state.lang === 'ru' ? 'Введите название!' : 'Title required!');
     return;
   }
 
@@ -1612,6 +1862,14 @@ function publishPin() {
   switchView('profile');
 }
 
+function resetCache() {
+  const conf = confirm(state.lang === 'ru' ? 'Вы уверены, что хотите сбросить все данные? Это вернет приложение к первоначальному состоянию.' : 'Are you sure you want to reset all app data?');
+  if (conf) {
+    localStorage.clear();
+    location.reload();
+  }
+}
+
 // --- Event Listeners Binding ---
 function setupEventListeners() {
   // Top header nav bindings
@@ -1647,17 +1905,17 @@ function setupEventListeners() {
 
   headerChatBtn.addEventListener('click', () => switchView('chat'));
 
-  // Settings fixed panel listeners
+  // Settings inputs inside profile page listeners
   settingsAvatarUrl.addEventListener('input', handleAvatarUrlChange);
   saveSettingsBtn.addEventListener('click', saveSettings);
   logoutBtn.addEventListener('click', handleLogout);
 
-  // Left settings sidebar drawers toggles
-  mobileSettingsToggle.addEventListener('click', toggleLeftSidebar);
+  // Left catalog sidebar mobile drawer toggles
+  mobileMenuToggle.addEventListener('click', toggleLeftSidebar);
   leftSidebarBackdrop.addEventListener('click', closeLeftSidebar);
   leftDrawerCloseBtn.addEventListener('click', closeLeftSidebar);
 
-  // Right sidebar catalog menu bindings
+  // Left sidebar catalog menu shortcuts
   sideNavHome.addEventListener('click', () => {
     state.activeCategory = 'all';
     state.activeBoardId = null;
@@ -1667,37 +1925,59 @@ function setupEventListeners() {
     renderSidebarCategories();
     renderSidebarBoards();
     switchView('feed');
-    closeRightSidebar();
+    closeLeftSidebar();
   });
 
   sideNavCreate.addEventListener('click', () => {
     switchView('create');
-    closeRightSidebar();
+    closeLeftSidebar();
   });
   
   sideNavProfile.addEventListener('click', () => {
     state.activeProfileTab = 'saved';
     state.activeBoardId = null;
     switchView('profile');
-    closeRightSidebar();
+    closeLeftSidebar();
   });
 
   sideNavChat.addEventListener('click', () => {
     switchView('chat');
-    closeRightSidebar();
+    closeLeftSidebar();
   });
 
-  // Right sidebar catalog drawers toggles
-  mobileMenuToggle.addEventListener('click', toggleRightSidebar);
-  rightSidebarBackdrop.addEventListener('click', closeRightSidebar);
-  rightDrawerCloseBtn.addEventListener('click', closeRightSidebar);
+  // Site Settings Event Listeners (on Left Sidebar)
+  const langSelect = document.getElementById('site-lang-select');
+  if (langSelect) {
+    langSelect.addEventListener('change', () => {
+      state.lang = langSelect.value;
+      saveState();
+      applyLocale(state.lang);
+      
+      renderSidebarCategories();
+      renderSidebarBoards();
+      if (state.currentView === 'feed') renderFeed();
+      if (state.currentView === 'profile') renderProfile();
+      if (state.currentView === 'chat') renderChatsInterface();
+    });
+  }
+
+  const btnCompact = document.getElementById('density-compact-btn');
+  const btnCozy = document.getElementById('density-cozy-btn');
+  const btnSpacious = document.getElementById('density-spacious-btn');
+  
+  if (btnCompact) btnCompact.addEventListener('click', () => { setGridDensity('compact'); saveState(); });
+  if (btnCozy) btnCozy.addEventListener('click', () => { setGridDensity('cozy'); saveState(); });
+  if (btnSpacious) btnSpacious.addEventListener('click', () => { setGridDensity('spacious'); saveState(); });
+
+  const resetCacheBtn = document.getElementById('reset-cache-btn');
+  if (resetCacheBtn) resetCacheBtn.addEventListener('click', resetCache);
 
   // Authentication overlays
   loginForm.addEventListener('submit', handleLoginSubmit);
   registerForm.addEventListener('submit', handleRegisterSubmit);
   authToggleBtn.addEventListener('click', toggleAuthForm);
 
-  // Profile chat threads
+  // Friends list & chat logs
   addFriendBtn.addEventListener('click', addFriendByUsername);
   addFriendInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') addFriendByUsername();
@@ -1707,7 +1987,7 @@ function setupEventListeners() {
     if (e.key === 'Enter') sendChatMessage();
   });
 
-  // Search input listeners
+  // Search suggestions
   searchInput.addEventListener('focus', () => {
     renderSearchSuggestions();
     searchSuggestions.classList.add('active');
@@ -1766,12 +2046,12 @@ function setupEventListeners() {
 
   document.getElementById('modal-share-btn').addEventListener('click', () => {
     navigator.clipboard.writeText(modalImg.src).then(() => {
-      alert('Ссылка на картинку скопирована в буфер обмена!');
+      alert(state.lang === 'ru' ? 'Ссылка на картинку скопирована!' : 'Image URL copied!');
     });
   });
 
   document.getElementById('modal-options-btn').addEventListener('click', () => {
-    alert('Опции пина: Нажата кнопка жалобы/скачивания.');
+    alert(state.lang === 'ru' ? 'Жалоба/скачивание отправлено.' : 'Options clicked.');
   });
 
   modalCommentInput.addEventListener('input', () => {
@@ -1790,7 +2070,7 @@ function setupEventListeners() {
 
   modalCommentSubmitBtn.addEventListener('click', submitComment);
 
-  // Profile tabs toggles
+  // Profile tabs
   tabSaved.addEventListener('click', () => {
     state.activeProfileTab = 'saved';
     state.activeBoardId = null;
@@ -1859,12 +2139,11 @@ function setupEventListeners() {
   submitPinBtn.addEventListener('click', publishPin);
 
   document.getElementById('profile-share-btn').addEventListener('click', () => {
-    alert(`Ссылка на профиль @${state.currentUser.username} скопирована в буфер.`);
+    alert(state.lang === 'ru' ? `Ссылка на профиль @${state.currentUser.username} скопирована.` : `Profile link for @${state.currentUser.username} copied.`);
   });
 }
 
 // --- App Initialization ---
-// Initialize app modules
 function initApp() {
   initLocalStorage();
   setupEventListeners();
@@ -1872,10 +2151,11 @@ function initApp() {
   if (state.isLoggedIn) {
     authOverlay.classList.add('hidden');
     navLinks.profileImg.querySelector('img').src = state.currentUser.avatar;
-    setupSettingsPage(); // Initialize left settings parameters
+    setupSettingsPage(); // Initialize profile page settings form elements
     renderSidebarCategories();
     renderSidebarBoards();
     renderFeed();
+    renderChatsInterface(); // Preload chat sidebar listings
     switchView('feed');
   } else {
     authOverlay.classList.remove('hidden');

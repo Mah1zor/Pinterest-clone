@@ -27,31 +27,31 @@
       <!-- LOGIN FORM -->
       <form id="login-form" class="auth-form">
         <div class="auth-group">
-          <label class="auth-label" for="login-username">Имя пользователя (username)</label>
+          <label class="auth-label" for="login-username" id="label-login-username">Имя пользователя (username)</label>
           <input type="text" id="login-username" class="auth-input" placeholder="Введите имя пользователя" required>
         </div>
         <div class="auth-group">
-          <label class="auth-label" for="login-password">Пароль</label>
+          <label class="auth-label" for="login-password" id="label-login-password">Пароль</label>
           <input type="password" id="login-password" class="auth-input" placeholder="Введите пароль" required>
         </div>
-        <button type="submit" class="auth-submit-btn">Войти</button>
+        <button type="submit" class="auth-submit-btn" id="btn-login-submit">Войти</button>
       </form>
 
       <!-- REGISTER FORM (Hidden by default) -->
       <form id="register-form" class="auth-form hidden">
         <div class="auth-group">
-          <label class="auth-label" for="reg-name">Ваше имя (для отображения)</label>
+          <label class="auth-label" for="reg-name" id="label-reg-name">Ваше имя (для отображения)</label>
           <input type="text" id="reg-name" class="auth-input" placeholder="Например: Иван Иванов" required>
         </div>
         <div class="auth-group">
-          <label class="auth-label" for="reg-username">Имя пользователя (уникальный @username)</label>
+          <label class="auth-label" for="reg-username" id="label-reg-username">Имя пользователя (уникальный @username)</label>
           <input type="text" id="reg-username" class="auth-input" placeholder="Например: ivan_design" required>
         </div>
         <div class="auth-group">
-          <label class="auth-label" for="reg-password">Пароль</label>
+          <label class="auth-label" for="reg-password" id="label-reg-password">Пароль</label>
           <input type="password" id="reg-password" class="auth-input" placeholder="Придумайте пароль" required>
         </div>
-        <button type="submit" class="auth-submit-btn">Зарегистрироваться</button>
+        <button type="submit" class="auth-submit-btn" id="btn-reg-submit">Зарегистрироваться</button>
       </form>
 
       <!-- Toggle between login/register -->
@@ -71,9 +71,9 @@
 
   <!-- Navigation Header -->
   <header class="app-header">
-    <!-- Left settings toggle -->
-    <button class="action-icon-btn mobile-settings-toggle" id="mobile-settings-toggle" title="Настройки">
-      <i class="fa-solid fa-gear"></i>
+    <!-- Left Catalog Toggle (Mobile only) -->
+    <button class="action-icon-btn mobile-menu-toggle" id="mobile-menu-toggle" title="Каталог" style="margin-right: 8px;">
+      <i class="fa-solid fa-bars"></i>
     </button>
 
     <div class="logo-container" id="logo-home-trigger" style="cursor: pointer;">
@@ -98,7 +98,7 @@
       
       <!-- Suggestions dropdown -->
       <div class="search-suggestions" id="search-suggestions">
-        <h4>Популярные поисковые запросы</h4>
+        <h4 id="label-popular-searches">Популярные поисковые запросы</h4>
         <div class="suggestions-grid" id="suggestions-list">
           <!-- Suggestion pills will be rendered dynamically -->
         </div>
@@ -116,131 +116,104 @@
       <button class="profile-avatar-btn" id="nav-profile-img" title="Профиль">
         <img src="" id="header-avatar-img" alt="Мой профиль">
       </button>
-      
-      <!-- Right catalog toggle -->
-      <button class="action-icon-btn mobile-menu-toggle" id="mobile-menu-toggle" title="Каталог" style="margin-left: 8px;">
-        <i class="fa-solid fa-bars"></i>
-      </button>
     </div>
   </header>
 
-  <!-- LEFT SIDEBAR: PROFILE SETTINGS (Fly-out) -->
-  <aside class="side-catalog left-side" id="left-settings-sidebar">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; width: 100%;">
-      <div class="settings-sidebar-header" style="padding-left: 8px;">
-        <h3 style="font-size: 18px; font-weight: 700;">Настройки</h3>
-        <p style="font-size: 12px; color: var(--gray-muted);">Ваша публичная информация</p>
-      </div>
-      <button class="drawer-close-btn" id="left-drawer-close" title="Закрыть настройки">
+  <!-- LEFT SIDEBAR: CATALOG & SITE CONFIG (Fixed on Desktop) -->
+  <aside class="side-catalog left-side" id="left-catalog-sidebar">
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+      <h3 style="font-size: 18px; font-weight: 700; padding-left: 8px;" id="label-catalog-title">Каталог</h3>
+      <button class="drawer-close-btn" id="left-drawer-close" title="Закрыть каталог">
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
-    
-    <div class="catalog-divider"></div>
-    
-    <div class="settings-sidebar-form" style="display: flex; flex-direction: column; gap: 14px; width: 100%;">
-      <!-- Profile Picture Preview & Input -->
-      <div class="form-group" style="align-items: center; gap: 12px; margin-bottom: 8px; flex-direction: row; width: 100%;">
-        <div style="width: 64px; height: 64px; border-radius: 50%; overflow: hidden; background-color: var(--gray-light); flex-shrink: 0; border: 1px solid var(--gray-border);">
-          <img src="" alt="Avatar Preview" id="settings-avatar-preview" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-        <div style="flex-grow: 1;">
-          <label class="form-label" style="font-size: 11px; margin-bottom: 4px;" for="settings-avatar-url">Ссылка на фото</label>
-          <input type="url" id="settings-avatar-url" class="form-input" style="height: 36px; padding: 0 10px; font-size: 12px; border-radius: 8px; width: 100%;" placeholder="URL фото">
-        </div>
-      </div>
 
-      <!-- Public Name -->
-      <div class="form-group">
-        <label class="form-label" style="font-size: 11px; margin-bottom: 4px;" for="settings-display-name">Публичное имя</label>
-        <input type="text" id="settings-display-name" class="form-input" style="height: 36px; padding: 0 12px; font-size: 13px; border-radius: 8px; width: 100%;" placeholder="Введите имя" required>
-      </div>
+    <div class="catalog-divider" style="margin: 8px 0;"></div>
 
-      <!-- Username -->
-      <div class="form-group">
-        <label class="form-label" style="font-size: 11px; margin-bottom: 4px;" for="settings-username">Имя пользователя (@username)</label>
-        <input type="text" id="settings-username" class="form-input" style="height: 36px; padding: 0 12px; font-size: 13px; border-radius: 8px; width: 100%;" placeholder="Введите username" required>
-        <span id="settings-username-error" style="font-size: 11px; color: var(--pinterest-red); margin-top: 4px; display: none;">Имя пользователя занято.</span>
+    <div class="catalog-section">
+      <h4 class="catalog-heading" id="label-cat-menu">Меню</h4>
+      <div class="catalog-menu-items">
+        <button class="catalog-item active" id="side-nav-home">
+          <i class="fa-solid fa-house catalog-item-icon"></i>
+          <span class="locale-nav-home">Лента</span>
+        </button>
+        <button class="catalog-item" id="side-nav-create">
+          <i class="fa-solid fa-circle-plus catalog-item-icon"></i>
+          <span class="locale-nav-create">Создать пин</span>
+        </button>
+        <button class="catalog-item" id="side-nav-profile">
+          <i class="fa-solid fa-user catalog-item-icon"></i>
+          <span class="locale-nav-profile">Профиль</span>
+        </button>
+        <button class="catalog-item" id="side-nav-chat">
+          <i class="fa-solid fa-comments catalog-item-icon"></i>
+          <span class="locale-nav-chat">Чат</span>
+        </button>
       </div>
+    </div>
 
-      <!-- Bio -->
-      <div class="form-group">
-        <label class="form-label" style="font-size: 11px; margin-bottom: 4px;" for="settings-bio">О себе</label>
-        <textarea id="settings-bio" class="create-form-textarea" style="height: 54px; font-size: 13px; border: 1px solid var(--gray-border); border-radius: 8px; padding: 8px; line-height: 1.3; width: 100%;" placeholder="Расскажите о себе..."></textarea>
+    <div class="catalog-divider" style="margin: 8px 0;"></div>
+
+    <div class="catalog-section">
+      <h4 class="catalog-heading" id="label-cat-categories">Категории</h4>
+      <div class="catalog-menu-items" id="side-categories-list">
+        <!-- Rendered dynamically from JS -->
       </div>
+    </div>
 
+    <div class="catalog-divider" style="margin: 8px 0;"></div>
+
+    <div class="catalog-section">
+      <h4 class="catalog-heading" id="label-cat-boards">Мои доски</h4>
+      <div class="catalog-menu-items" id="side-boards-list">
+        <!-- Rendered dynamically from JS -->
+      </div>
+    </div>
+
+    <div class="catalog-divider" style="margin: 8px 0;"></div>
+
+    <!-- SITE SETTINGS PANEL -->
+    <div class="catalog-section site-settings-panel" style="display: flex; flex-direction: column; gap: 10px;">
+      <h4 class="catalog-heading" id="label-site-settings-title">Настройки сайта</h4>
+      
       <!-- Theme Switcher -->
-      <div class="form-group" style="flex-direction: row; justify-content: space-between; align-items: center; padding: 12px 0; border-top: 1px solid var(--gray-border); border-bottom: 1px solid var(--gray-border); margin-bottom: 4px; width: 100%;">
-        <label class="form-label" style="margin-bottom: 0; font-size: 13px; cursor: pointer;" for="theme-toggle-check">Тёмная тема</label>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 12px; background-color: var(--gray-light); border-radius: 12px; height: 38px;">
+        <span style="font-size: 13px; font-weight: 500;" id="label-site-theme">Тёмная тема</span>
         <label class="switch-toggle" style="position: relative; display: inline-block; width: 44px; height: 24px;">
           <input type="checkbox" id="theme-toggle-check" style="opacity: 0; width: 0; height: 0;">
           <span class="switch-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--gray-border); transition: .3s; border-radius: 24px;"></span>
         </label>
       </div>
 
-      <!-- Action Buttons -->
-      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px; width: 100%;">
-        <button class="profile-btn primary" id="save-settings-btn" style="height: 38px; width: 100%; border-radius: 19px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;">Сохранить</button>
-        <button class="profile-btn" id="logout-btn" style="height: 38px; width: 100%; border-radius: 19px; color: var(--pinterest-red); border: 1px solid var(--pinterest-red); background-color: transparent; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;"><i class="fa-solid fa-arrow-right-from-bracket" style="margin-right: 6px;"></i> Выйти</button>
+      <!-- Language Selector Dropdown -->
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 12px; background-color: var(--gray-light); border-radius: 12px; height: 38px;">
+        <span style="font-size: 13px; font-weight: 500;" id="label-site-lang">Язык</span>
+        <select id="site-lang-select" style="font-size: 12px; font-weight: 600; cursor: pointer; background: transparent; color: var(--black); border: none;">
+          <option value="ru" selected>Русский</option>
+          <option value="en">English</option>
+        </select>
       </div>
-    </div>
-  </aside>
 
-  <!-- RIGHT SIDEBAR: NAVIGATION & CATALOG (Fly-out) -->
-  <aside class="side-catalog right-side" id="right-catalog-sidebar">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; width: 100%;">
-      <h3 style="font-size: 18px; font-weight: 700; padding-left: 8px;">Каталог</h3>
-      <button class="drawer-close-btn" id="right-drawer-close" title="Закрыть каталог">
-        <i class="fa-solid fa-xmark"></i>
+      <!-- Grid Density button settings -->
+      <div style="display: flex; flex-direction: column; gap: 4px; padding: 8px 12px; background-color: var(--gray-light); border-radius: 12px;">
+        <span style="font-size: 13px; font-weight: 500; margin-bottom: 4px;" id="label-site-density">Разметка сетки</span>
+        <div style="display: flex; gap: 4px; width: 100%;">
+          <button class="profile-btn active" id="density-compact-btn" style="flex: 1; padding: 6px 0; font-size: 10px; border-radius: 8px; height: auto; font-weight: 600; min-width: unset;">Компакт</button>
+          <button class="profile-btn" id="density-cozy-btn" style="flex: 1; padding: 6px 0; font-size: 10px; border-radius: 8px; height: auto; font-weight: 600; min-width: unset;">Стандарт</button>
+          <button class="profile-btn" id="density-spacious-btn" style="flex: 1; padding: 6px 0; font-size: 10px; border-radius: 8px; height: auto; font-weight: 600; min-width: unset;">Широкая</button>
+        </div>
+      </div>
+
+      <!-- Reset Local cache -->
+      <button class="profile-btn" id="reset-cache-btn" style="height: 38px; width: 100%; border-radius: 19px; background-color: transparent; border: 1px dashed var(--gray-muted); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--gray-muted); margin-top: 4px;">
+        <i class="fa-solid fa-trash-can" style="margin-right: 6px;"></i>
+        <span id="label-site-reset">Сбросить данные</span>
       </button>
     </div>
-
-    <div class="catalog-divider"></div>
-
-    <div class="catalog-section">
-      <h4 class="catalog-heading">Меню</h4>
-      <div class="catalog-menu-items">
-        <button class="catalog-item active" id="side-nav-home">
-          <i class="fa-solid fa-house catalog-item-icon"></i>
-          <span>Лента</span>
-        </button>
-        <button class="catalog-item" id="side-nav-create">
-          <i class="fa-solid fa-circle-plus catalog-item-icon"></i>
-          <span>Создать пин</span>
-        </button>
-        <button class="catalog-item" id="side-nav-profile">
-          <i class="fa-solid fa-user catalog-item-icon"></i>
-          <span>Профиль</span>
-        </button>
-        <button class="catalog-item" id="side-nav-chat">
-          <i class="fa-solid fa-comments catalog-item-icon"></i>
-          <span>Чат</span>
-        </button>
-      </div>
-    </div>
-
-    <div class="catalog-divider"></div>
-
-    <div class="catalog-section">
-      <h4 class="catalog-heading">Категории</h4>
-      <div class="catalog-menu-items" id="side-categories-list">
-        <!-- Rendered dynamically from JS -->
-      </div>
-    </div>
-
-    <div class="catalog-divider"></div>
-
-    <div class="catalog-section">
-      <h4 class="catalog-heading">Мои доски</h4>
-      <div class="catalog-menu-items" id="side-boards-list">
-        <!-- Rendered dynamically from JS -->
-      </div>
-    </div>
   </aside>
 
-  <!-- Sidebar overlay backdrops for fly-out views -->
+  <!-- Sidebar overlay backdrop for Catalog drawer on mobile -->
   <div class="sidebar-backdrop left-backdrop" id="left-sidebar-backdrop"></div>
-  <div class="sidebar-backdrop right-backdrop" id="right-sidebar-backdrop"></div>
 
   <!-- App Main Content Area -->
   <main class="app-content">
@@ -261,8 +234,8 @@
         <div class="create-pin-upload-col">
           <div class="upload-dropzone" id="upload-zone">
             <i class="fa-solid fa-circle-arrow-up upload-icon"></i>
-            <div class="upload-text">Перетащите сюда изображение или кликните</div>
-            <div class="upload-subtext">Рекомендуется использовать файлы высокого качества JPG/PNG менее 20 МБ</div>
+            <div class="upload-text" id="label-create-dragtext">Перетащите сюда изображение или кликните</div>
+            <div class="upload-subtext" id="label-create-subtext">Рекомендуется использовать файлы JPG/PNG менее 20 МБ</div>
             
             <!-- File Input (Hidden) -->
             <input type="file" id="file-input" accept="image/*" class="hidden">
@@ -272,7 +245,7 @@
           </div>
           
           <div class="url-upload-box">
-            <label class="form-label" style="font-size: 13px;">Или укажите прямую ссылку на изображение:</label>
+            <label class="form-label" style="font-size: 13px;" id="label-create-url">Или укажите прямую ссылку на изображение:</label>
             <input type="url" id="image-url-input" class="form-input" placeholder="https://example.com/image.jpg">
           </div>
         </div>
@@ -296,14 +269,14 @@
           </div>
           
           <div class="form-group">
-            <label class="form-label">Выбрать доску</label>
+            <label class="form-label" id="label-create-board-select">Выбрать доску</label>
             <select id="pin-board-select" class="create-select">
               <!-- Dynamically populated boards -->
             </select>
           </div>
           
           <div class="form-group">
-            <label class="form-label">Категория</label>
+            <label class="form-label" id="label-create-cat-select">Категория</label>
             <select id="pin-category-select" class="create-select">
               <option value="Интерьер">Интерьер</option>
               <option value="Путешествия">Путешествия</option>
@@ -317,99 +290,151 @@
       </div>
     </section>
 
-    <!-- VIEW 3: USER PROFILE -->
+    <!-- VIEW 3: USER PROFILE (Split into main left content and right settings column on desktop) -->
     <section id="profile-view" class="view-section">
-      <div class="profile-container">
-        <!-- Header -->
-        <header class="profile-header">
-          <div class="profile-large-avatar">
-            <img src="" id="profile-avatar-img" alt="Алексей">
-          </div>
-          <h2 class="profile-name" id="profile-display-name">Алексей Иванов</h2>
-          <div class="profile-username" id="profile-username">@creative_mind</div>
-          <p class="profile-bio" id="profile-bio">Любитель эстетики...</p>
-          <div class="profile-stats">
-            <span id="profile-followers-count">1.4k подписчиков</span>
-            <span>•</span>
-            <span id="profile-following-count">892 подписок</span>
-          </div>
-          <div class="profile-actions" style="justify-content: center;">
-            <button class="profile-btn" id="profile-share-btn">Поделиться профилем</button>
-          </div>
-        </header>
+      <div class="profile-flex-wrapper">
         
-        <!-- Tabs Nav (No chat tab anymore!) -->
-        <div class="profile-tabs-bar">
-          <button class="profile-tab active" id="tab-saved">Сохраненные</button>
-          <button class="profile-tab" id="tab-created">Созданные</button>
-        </div>
-        
-        <!-- Saved Content (Boards List) -->
-        <div id="profile-saved-section" class="tab-content active" style="width: 100%;">
-          <div style="display: flex; justify-content: flex-end; margin-bottom: 24px;">
-            <button class="profile-btn primary" id="trigger-create-board" style="padding: 10px 16px; font-size: 13px;">
-              <i class="fa-solid fa-plus" style="margin-right: 4px;"></i> Создать доску
-            </button>
+        <!-- Left/Main Column: Public profile header, tabs, and boards/pins grids -->
+        <div class="profile-main-column">
+          <!-- Header -->
+          <header class="profile-header" style="text-align: left; align-items: flex-start; margin-bottom: 30px;">
+            <div style="display: flex; gap: 20px; align-items: center; width: 100%;">
+              <div class="profile-large-avatar" style="margin: 0; width: 90px; height: 90px;">
+                <img src="" id="profile-avatar-img" alt="Аватар">
+              </div>
+              <div>
+                <h2 class="profile-name" id="profile-display-name" style="font-size: 26px; margin-bottom: 2px;">Алексей Иванов</h2>
+                <div class="profile-username" id="profile-username" style="margin-bottom: 6px;">@creative_mind</div>
+                <div class="profile-stats" style="justify-content: flex-start; margin-bottom: 0; font-size: 13px;">
+                  <span id="profile-followers-count">1.4k подписчиков</span>
+                  <span>•</span>
+                  <span id="profile-following-count">892 подписок</span>
+                </div>
+              </div>
+            </div>
+            <p class="profile-bio" id="profile-bio" style="margin-top: 14px; text-align: left;">Любитель эстетики...</p>
+            <div class="profile-actions" style="margin-top: 14px; justify-content: flex-start;">
+              <button class="profile-btn" id="profile-share-btn">Поделиться профилем</button>
+            </div>
+          </header>
+          
+          <!-- Tabs Nav -->
+          <div class="profile-tabs-bar" style="justify-content: flex-start;">
+            <button class="profile-tab active" id="tab-saved">Сохраненные</button>
+            <button class="profile-tab" id="tab-created">Созданные</button>
           </div>
           
-          <div class="boards-grid" id="boards-grid-saved">
-            <!-- Boards rendered dynamically -->
-          </div>
-        </div>
-        
-        <!-- Created Content (Pins Grid) -->
-        <div id="profile-created-section" class="tab-content hidden" style="width: 100%;">
-          <div class="pins-grid" id="pins-grid-created">
-            <!-- Created pins rendered dynamically -->
-          </div>
-        </div>
-
-        <!-- Board Details View (Inside Profile) -->
-        <div id="board-details-view" class="tab-content hidden" style="width: 100%;">
-          <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
-            <button class="profile-btn" id="board-back-btn" style="padding: 8px 12px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-              <i class="fa-solid fa-arrow-left"></i>
-            </button>
-            <div>
-              <h2 id="current-board-title" style="font-size: 28px; font-weight: 700;">Имя доски</h2>
-              <span id="current-board-count" style="font-size: 14px; color: var(--gray-muted);">0 пинов</span>
+          <!-- Saved Content (Boards List) -->
+          <div id="profile-saved-section" class="tab-content active" style="width: 100%;">
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+              <button class="profile-btn primary" id="trigger-create-board" style="padding: 8px 14px; font-size: 12px;">
+                <i class="fa-solid fa-plus" style="margin-right: 4px;"></i> Создать доску
+              </button>
+            </div>
+            
+            <div class="boards-grid" id="boards-grid-saved">
+              <!-- Boards rendered dynamically -->
             </div>
           </div>
           
-          <div class="pins-grid" id="pins-grid-board-pins">
-            <!-- Pins in this board rendered dynamically -->
+          <!-- Created Content (Pins Grid) -->
+          <div id="profile-created-section" class="tab-content hidden" style="width: 100%;">
+            <div class="pins-grid" id="pins-grid-created">
+              <!-- Created pins rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Board Details View (Inside Profile) -->
+          <div id="board-details-view" class="tab-content hidden" style="width: 100%;">
+            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+              <button class="profile-btn" id="board-back-btn" style="padding: 8px 12px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-arrow-left"></i>
+              </button>
+              <div>
+                <h2 id="current-board-title" style="font-size: 28px; font-weight: 700;">Имя доски</h2>
+                <span id="current-board-count" style="font-size: 14px; color: var(--gray-muted);">0 пинов</span>
+              </div>
+            </div>
+            
+            <div class="pins-grid" id="pins-grid-board-pins">
+              <!-- Pins in this board rendered dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Profile settings form panel -->
+        <div class="profile-settings-column">
+          <div class="profile-settings-card">
+            <h3 id="label-settings-title" class="settings-card-title">Настройки профиля</h3>
+            
+            <!-- Avatar Edit -->
+            <div class="form-group" style="align-items: center; gap: 12px; flex-direction: row; margin-bottom: 12px;">
+              <div style="width: 54px; height: 54px; border-radius: 50%; overflow: hidden; background-color: var(--gray-light); flex-shrink: 0; border: 1px solid var(--gray-border);">
+                <img src="" alt="Avatar Preview" id="settings-avatar-preview" style="width: 100%; height: 100%; object-fit: cover;">
+              </div>
+              <div style="flex-grow: 1;">
+                <label class="form-label" style="font-size: 11px; margin-bottom: 2px;" for="settings-avatar-url" id="label-settings-avatar">Ссылка на фото</label>
+                <input type="url" id="settings-avatar-url" class="form-input" style="height: 32px; padding: 0 10px; font-size: 12px; border-radius: 8px; width: 100%;" placeholder="URL фото">
+              </div>
+            </div>
+
+            <!-- Public Name -->
+            <div class="form-group">
+              <label class="form-label" style="font-size: 11px; margin-bottom: 2px;" for="settings-display-name" id="label-settings-name">Публичное имя</label>
+              <input type="text" id="settings-display-name" class="form-input" style="height: 32px; padding: 0 10px; font-size: 12px; border-radius: 8px; width: 100%;" placeholder="Введите имя" required>
+            </div>
+
+            <!-- Username -->
+            <div class="form-group">
+              <label class="form-label" style="font-size: 11px; margin-bottom: 2px;" for="settings-username" id="label-settings-username">Имя пользователя</label>
+              <input type="text" id="settings-username" class="form-input" style="height: 32px; padding: 0 10px; font-size: 12px; border-radius: 8px; width: 100%;" placeholder="Введите username" required>
+              <span id="settings-username-error" style="font-size: 11px; color: var(--pinterest-red); margin-top: 2px; display: none;">Имя пользователя занято.</span>
+            </div>
+
+            <!-- Bio -->
+            <div class="form-group">
+              <label class="form-label" style="font-size: 11px; margin-bottom: 2px;" for="settings-bio" id="label-settings-bio">О себе</label>
+              <textarea id="settings-bio" class="create-form-textarea" style="height: 60px; font-size: 12px; border: 1px solid var(--gray-border); border-radius: 8px; padding: 8px; line-height: 1.3; width: 100%;" placeholder="Расскажите о себе..."></textarea>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px; width: 100%;">
+              <button class="profile-btn primary" id="save-settings-btn" style="height: 38px; width: 100%; border-radius: 19px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; padding: 0;">Сохранить</button>
+              <button class="profile-btn" id="logout-btn" style="height: 38px; width: 100%; border-radius: 19px; color: var(--pinterest-red); border: 1px solid var(--pinterest-red); background-color: transparent; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; padding: 0;"><i class="fa-solid fa-arrow-right-from-bracket" style="margin-right: 6px;"></i> Выйти</button>
+            </div>
           </div>
         </div>
 
       </div>
     </section>
 
-    <!-- VIEW 4: DEDICATED CHAT & FRIENDS VIEW -->
+    <!-- VIEW 4: DEDICATED ACTIVE CHAT LOG VIEW (Split layout: friends list on the left, log on the right) -->
     <section id="chat-view" class="view-section">
       <div class="profile-container" style="max-width: 1200px;">
-        <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 8px; text-align: center;">Ваши сообщения</h2>
-        <p style="color: var(--gray-muted); margin-bottom: 24px; text-align: center;">Общайтесь с друзьями и делитесь идеями</p>
+        <h2 style="font-size: 26px; font-weight: 700; margin-bottom: 4px; text-align: center;" id="label-chat-top-title">Ваши сообщения</h2>
+        <p style="color: var(--gray-muted); margin-bottom: 20px; text-align: center;" id="label-chat-top-subtitle">Общайтесь с друзьями и делитесь идеями</p>
 
         <div class="chat-container">
-          <!-- Left Sidebar (Friends) -->
-          <div class="chat-sidebar">
-            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">Друзья</h3>
-            <div class="add-friend-box">
-              <input type="text" id="add-friend-input" class="form-input" placeholder="Добавить по @username..." style="height: 40px; border-radius: 20px; font-size: 13px;">
-              <button id="add-friend-btn" class="profile-btn primary" style="width: 40px; height: 40px; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center;" title="Добавить друга">
+          <!-- Left Sidebar (Friends & Recommendations list) -->
+          <div class="chat-sidebar" style="width: 280px;">
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;" id="label-friends-title">Мои друзья</h3>
+            <div class="add-friend-box" style="margin-bottom: 10px;">
+              <input type="text" id="add-friend-input" class="form-input" placeholder="Добавить по @username..." style="height: 34px; border-radius: 17px; font-size: 12px; padding: 0 12px; width: calc(100% - 42px);">
+              <button id="add-friend-btn" class="profile-btn primary" style="width: 34px; height: 34px; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center;" title="Добавить друга">
                 <i class="fa-solid fa-user-plus"></i>
               </button>
             </div>
-            <div id="add-friend-error" class="auth-error hidden" style="padding: 6px; font-size: 12px; margin-top: 8px; margin-bottom: 8px;">Пользователь не найден</div>
+            <div id="add-friend-error" class="auth-error hidden" style="padding: 4px 8px; font-size: 11px; margin-bottom: 8px;">Пользователь не найден</div>
             
-            <div class="friends-list" id="profile-friends-list">
-              <!-- Dynamically rendered list of friends -->
+            <div class="friends-list" id="profile-friends-list" style="max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px;">
+              <!-- Friends list -->
             </div>
 
-            <div class="catalog-divider" style="margin: 16px 0 12px 0;"></div>
-            <h4 class="catalog-heading" style="padding-left: 0; margin-bottom: 8px;">Рекомендации</h4>
-            <div class="friends-list" id="profile-recommendations-list">
-              <!-- Dynamically rendered recommended users -->
+            <div class="catalog-divider" style="margin: 8px 0;"></div>
+
+            <h4 class="catalog-heading" style="padding-left: 0; margin-bottom: 6px; font-size: 11px;" id="label-rec-friends-title">Рекомендации</h4>
+            <div class="friends-list" id="profile-recommendations-list" style="max-height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">
+              <!-- Recommended list -->
             </div>
           </div>
 
@@ -418,7 +443,7 @@
             <!-- Placeholder -->
             <div class="chat-placeholder" id="chat-placeholder">
               <i class="fa-solid fa-comments" style="font-size: 48px; color: var(--gray-border); margin-bottom: 12px;"></i>
-              <p style="font-weight: 500; color: var(--gray-muted);">Выберите друга, чтобы начать общение</p>
+              <p style="font-weight: 500; color: var(--gray-muted);" id="label-chat-placeholder">Выберите друга в левой колонке, чтобы начать общение</p>
             </div>
 
             <!-- Message Board -->

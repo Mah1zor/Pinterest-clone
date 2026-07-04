@@ -1,22 +1,60 @@
 // Pinterest Clone - Mock Data
 
-export const INITIAL_BOARDS = [
-  { id: 'board-1', name: 'Идеи для дома', pinIds: ['pin-1', 'pin-4', 'pin-7'] },
-  { id: 'board-2', name: 'Путешествия', pinIds: ['pin-2', 'pin-8', 'pin-12'] },
-  { id: 'board-3', name: 'Рецепты', pinIds: ['pin-10', 'pin-11'] },
-  { id: 'board-4', name: 'Вдохновение / Арт', pinIds: ['pin-13', 'pin-14', 'pin-15'] }
-];
-
 export const CURRENT_USER = {
   username: 'creative_mind',
+  password: '123',
   name: 'Алексей Иванов',
   avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
   bio: 'Дизайнер интерьеров и любитель эстетики. Путешествую, ищу вдохновение в архитектуре, природе и еде.',
   followersCount: '1.4k',
   followingCount: '892',
   savedPins: ['pin-1', 'pin-2', 'pin-4', 'pin-7', 'pin-8', 'pin-10', 'pin-11', 'pin-12', 'pin-13', 'pin-14', 'pin-15'],
-  createdPins: [] // Will start empty, and populated when user creates a pin
+  createdPins: [],
+  friends: ['wanderlust_travel']
 };
+
+export const MOCK_USERS = [
+  {
+    username: 'creative_mind',
+    password: '123',
+    name: 'Алексей Иванов',
+    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+    bio: 'Дизайнер интерьеров и любитель эстетики. Путешествую, ищу вдохновение в архитектуре, природе и еде.',
+    followersCount: '1.4k',
+    followingCount: '892',
+    savedPins: ['pin-1', 'pin-2', 'pin-4', 'pin-7', 'pin-8', 'pin-10', 'pin-11', 'pin-12', 'pin-13', 'pin-14', 'pin-15'],
+    createdPins: [],
+    friends: ['wanderlust_travel']
+  },
+  {
+    username: 'wanderlust_travel',
+    password: '123',
+    name: 'Мария Смирнова',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    bio: 'Трэвел-блогер и фотограф. Делюсь секретными локациями со всего земного шара. Ловлю рассветы.',
+    followersCount: '25.8k',
+    followingCount: '412',
+    savedPins: ['pin-2', 'pin-3', 'pin-8', 'pin-9', 'pin-12'],
+    createdPins: ['pin-2', 'pin-8', 'pin-12'],
+    friends: ['creative_mind']
+  }
+];
+
+export const INITIAL_CHATS = {
+  "creative_mind_wanderlust_travel": [
+    { sender: 'wanderlust_travel', text: 'Привет! Мне очень понравилась твоя доска с идеями для дома.', timestamp: '15:32' },
+    { sender: 'creative_mind', text: 'Привет! Большое спасибо! Я долго подбирал минималистичные интерьеры.', timestamp: '15:34' },
+    { sender: 'wanderlust_travel', text: 'Особенно вилла у бассейна зацепила. Это твой проект?', timestamp: '15:35' },
+    { sender: 'creative_mind', text: 'Да, один из недавних концептов.', timestamp: '15:37' }
+  ]
+};
+
+export const INITIAL_BOARDS = [
+  { id: 'board-1', name: 'Идеи для дома', pinIds: ['pin-1', 'pin-4', 'pin-7'] },
+  { id: 'board-2', name: 'Путешествия', pinIds: ['pin-2', 'pin-8', 'pin-12'] },
+  { id: 'board-3', name: 'Рецепты', pinIds: ['pin-10', 'pin-11'] },
+  { id: 'board-4', name: 'Вдохновение / Арт', pinIds: ['pin-13', 'pin-14', 'pin-15'] }
+];
 
 export const INITIAL_PINS = [
   {

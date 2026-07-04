@@ -46,7 +46,9 @@ const LOCALES = {
     regSubmit: 'Зарегистрироваться',
     savedTab: 'Сохраненные',
     createdTab: 'Созданные',
-    shareProfile: 'Поделиться профилем'
+    shareProfile: 'Поделиться профилем',
+    editProfile: 'Редактировать профиль',
+    cancel: 'Отмена'
   },
   en: {
     navHome: 'Home',
@@ -91,7 +93,9 @@ const LOCALES = {
     regSubmit: 'Register',
     savedTab: 'Saved',
     createdTab: 'Created',
-    shareProfile: 'Share Profile'
+    shareProfile: 'Share Profile',
+    editProfile: 'Edit Profile',
+    cancel: 'Cancel'
   }
 };
 
@@ -281,7 +285,7 @@ function applyLocale(lang) {
   const popularSearches = document.getElementById('label-popular-searches');
   if (popularSearches) popularSearches.textContent = dict.popularSearches;
 
-  // Profile Settings form labels
+  // Profile Settings form labels (inside sliding drawer)
   const settingsTitle = document.getElementById('label-settings-title');
   const labelAvatar = document.getElementById('label-settings-avatar');
   const labelName = document.getElementById('label-settings-name');
@@ -289,6 +293,7 @@ function applyLocale(lang) {
   const labelBio = document.getElementById('label-settings-bio');
   const saveBtn = document.getElementById('save-settings-btn');
   const logoutBtn = document.getElementById('logout-btn');
+  const profileEditCancelBtn = document.getElementById('profile-edit-cancel');
 
   if (settingsTitle) settingsTitle.textContent = dict.settingsTitle;
   if (labelAvatar) labelAvatar.textContent = dict.settingsAvatar;
@@ -297,6 +302,11 @@ function applyLocale(lang) {
   if (labelBio) labelBio.textContent = dict.settingsBio;
   if (saveBtn) saveBtn.textContent = dict.settingsSave;
   if (logoutBtn) logoutBtn.textContent = dict.settingsLogout;
+  if (profileEditCancelBtn) profileEditCancelBtn.textContent = dict.cancel;
+
+  // Edit profile button label
+  const labelProfileEdit = document.getElementById('label-profile-edit');
+  if (labelProfileEdit) labelProfileEdit.textContent = dict.editProfile;
 
   // Chat View Friends
   const friendsTitle = document.getElementById('label-friends-title');
@@ -507,13 +517,20 @@ const leftDrawerCloseBtn = document.getElementById('left-drawer-close');
 const sideCategoriesList = document.getElementById('side-categories-list');
 const sideBoardsList = document.getElementById('side-boards-list');
 
-// Right sidebar shortcuts (Catalog Navigation is on the left sidebar!)
+// Sidebar shortcuts
 const sideNavHome = document.getElementById('side-nav-home');
 const sideNavCreate = document.getElementById('side-nav-create');
 const sideNavProfile = document.getElementById('side-nav-profile');
 const sideNavChat = document.getElementById('side-nav-chat');
 
-// PROFILE EDIT FIELDS (INSIDE PROFILE PAGE VIEW)
+// PROFILE EDIT SLIDING DRAWER ELEMENTS
+const profileEditBtn = document.getElementById('profile-edit-btn');
+const profileEditDrawer = document.getElementById('profile-edit-drawer');
+const profileEditBackdrop = document.getElementById('profile-edit-backdrop');
+const profileEditClose = document.getElementById('profile-edit-close');
+const profileEditCancel = document.getElementById('profile-edit-cancel');
+
+// PROFILE EDIT FORM FIELDS
 const settingsAvatarUrl = document.getElementById('settings-avatar-url');
 const settingsAvatarPreview = document.getElementById('settings-avatar-preview');
 const settingsDisplayName = document.getElementById('settings-display-name');
@@ -563,6 +580,7 @@ function switchView(viewName) {
 
   // Close slide drawers if under 1024px
   closeLeftSidebar();
+  closeProfileEditDrawer();
   
   // Highlight active side navigation lists
   syncSidebarCatalogHighlights();
@@ -582,6 +600,18 @@ function openLeftSidebar() {
 function closeLeftSidebar() {
   leftCatalogSidebar.classList.remove('active');
   leftSidebarBackdrop.classList.remove('active');
+}
+
+// PROFILE EDIT SLIDING DRAWER CONTROLLER HELPERS
+function openProfileEditDrawer() {
+  profileEditDrawer.classList.add('active');
+  profileEditBackdrop.classList.add('active');
+  setupSettingsPage();
+}
+
+function closeProfileEditDrawer() {
+  profileEditDrawer.classList.remove('active');
+  profileEditBackdrop.classList.remove('active');
 }
 
 // Highlight the currently active sidebar navigation item
@@ -609,12 +639,13 @@ function syncSidebarCatalogHighlights() {
   }
 }
 
-// UX Settings Action Helper (routes user to Profile page, focuses username input field)
+// UX Settings Action Helper (routes user to Profile page, opens edit drawer)
 function triggerSettingsAction() {
   switchView('profile');
   setTimeout(() => {
+    openProfileEditDrawer();
     settingsDisplayName.focus();
-  }, 300);
+  }, 350);
 }
 
 // --- Authentication Controllers ---
@@ -724,6 +755,7 @@ function handleLogout() {
   
   authOverlay.classList.remove('hidden');
   closeLeftSidebar();
+  closeProfileEditDrawer();
 }
 
 // --- Render Sidebar Categories & Boards ---
@@ -992,8 +1024,6 @@ function renderProfile() {
   savedSection.classList.add('hidden');
   createdSection.classList.add('hidden');
   boardDetailsView.classList.add('hidden');
-
-  setupSettingsPage(); // Render values in editable profile details form
 
   if (state.activeProfileTab === 'saved') {
     tabSaved.classList.add('active');
@@ -1331,7 +1361,7 @@ function createNewBoard() {
   renderSidebarBoards();
 }
 
-// --- Settings Operations (Fixed on the Left Sidebar) ---
+// --- Settings Form Loading ---
 function setupSettingsPage() {
   const user = state.currentUser;
   settingsAvatarUrl.value = user.avatar || '';
@@ -1460,6 +1490,8 @@ function saveSettings() {
   renderSidebarCategories();
   renderSidebarBoards();
 
+  closeProfileEditDrawer();
+
   if (state.currentView === 'profile') {
     renderProfile();
   }
@@ -1536,6 +1568,7 @@ function closePinDetails() {
   }
 }
 
+// Like Pin
 function toggleLike() {
   const pin = state.openPin;
   if (!pin) return;
@@ -1561,6 +1594,7 @@ function toggleLike() {
   saveState();
 }
 
+// Follow creator
 function toggleFollowCreator() {
   const pin = state.openPin;
   if (!pin) return;
@@ -1905,15 +1939,21 @@ function setupEventListeners() {
 
   headerChatBtn.addEventListener('click', () => switchView('chat'));
 
-  // Settings inputs inside profile page listeners
-  settingsAvatarUrl.addEventListener('input', handleAvatarUrlChange);
-  saveSettingsBtn.addEventListener('click', saveSettings);
-  logoutBtn.addEventListener('click', handleLogout);
-
   // Left catalog sidebar mobile drawer toggles
   mobileMenuToggle.addEventListener('click', toggleLeftSidebar);
   leftSidebarBackdrop.addEventListener('click', closeLeftSidebar);
   leftDrawerCloseBtn.addEventListener('click', closeLeftSidebar);
+
+  // Profile Edit Overlay Drawer toggles
+  profileEditBtn.addEventListener('click', openProfileEditDrawer);
+  profileEditBackdrop.addEventListener('click', closeProfileEditDrawer);
+  profileEditClose.addEventListener('click', closeProfileEditDrawer);
+  profileEditCancel.addEventListener('click', closeProfileEditDrawer);
+
+  // Settings inputs listeners
+  settingsAvatarUrl.addEventListener('input', handleAvatarUrlChange);
+  saveSettingsBtn.addEventListener('click', saveSettings);
+  logoutBtn.addEventListener('click', handleLogout);
 
   // Left sidebar catalog menu shortcuts
   sideNavHome.addEventListener('click', () => {
@@ -2151,7 +2191,7 @@ function initApp() {
   if (state.isLoggedIn) {
     authOverlay.classList.add('hidden');
     navLinks.profileImg.querySelector('img').src = state.currentUser.avatar;
-    setupSettingsPage(); // Initialize profile page settings form elements
+    setupSettingsPage(); // Initialize overlay profile settings form fields
     renderSidebarCategories();
     renderSidebarBoards();
     renderFeed();

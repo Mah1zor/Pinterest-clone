@@ -124,7 +124,7 @@
     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; width: 100%;">
       <div class="settings-sidebar-header" style="padding-left: 8px;">
         <h3 style="font-size: 18px; font-weight: 700;">Настройки</h3>
-        <p style="font-size: 12px; color: var(--gray-muted);">Ваша публичная информация</p>
+        <p style="font-size: 12px; color: var(--gray-muted);">Настройки приложения</p>
       </div>
       <button class="drawer-close-btn" id="left-drawer-close" title="Закрыть настройки">
         <i class="fa-solid fa-xmark"></i>
@@ -134,34 +134,62 @@
     <div class="catalog-divider"></div>
     
     <div class="settings-sidebar-form" style="display: flex; flex-direction: column; gap: 14px; width: 100%;">
-      <!-- Profile Picture Preview & Input -->
-      <div class="form-group" style="align-items: center; gap: 12px; margin-bottom: 8px; flex-direction: row; width: 100%;">
-        <div style="width: 64px; height: 64px; border-radius: 50%; overflow: hidden; background-color: var(--gray-light); flex-shrink: 0; border: 1px solid var(--gray-border);">
-          <img src="" alt="Avatar Preview" id="settings-avatar-preview" style="width: 100%; height: 100%; object-fit: cover;">
+      <!-- Pins Grid Columns selection -->
+      <div class="form-group">
+        <label class="form-label" style="font-size: 11px; margin-bottom: 4px;" for="settings-grid-columns">Плотность сетки пинов</label>
+        <select id="settings-grid-columns" class="create-select" style="height: 36px; padding: 0 12px; font-size: 13px; border-radius: 8px; border: 1px solid var(--gray-border); width: 100%; background-color: var(--white); color: var(--black);">
+          <option value="3">Крупная (3 колонки)</option>
+          <option value="5" selected>Стандартная (5 колонок)</option>
+          <option value="7">Компактная (7 колонок)</option>
+        </select>
+      </div>
+
+      <!-- Private profile switch -->
+      <div class="form-group" style="flex-direction: row; justify-content: space-between; align-items: center; padding: 4px 0; width: 100%;">
+        <div>
+          <label class="form-label" style="margin-bottom: 0; font-size: 13px; cursor: pointer;" for="settings-private-profile">Приватный аккаунт</label>
+          <span style="font-size: 10px; color: var(--gray-muted); display: block;">Скрыть мои доски от других</span>
         </div>
-        <div style="flex-grow: 1;">
-          <label class="form-label" style="font-size: 11px; margin-bottom: 4px;" for="settings-avatar-url">Ссылка на фото</label>
-          <input type="url" id="settings-avatar-url" class="form-input" style="height: 36px; padding: 0 10px; font-size: 12px; border-radius: 8px; width: 100%;" placeholder="URL фото">
+        <label class="switch-toggle" style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
+          <input type="checkbox" id="settings-private-profile" style="opacity: 0; width: 0; height: 0;">
+          <span class="switch-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--gray-border); transition: .3s; border-radius: 24px;"></span>
+        </label>
+      </div>
+
+      <!-- Online status switch -->
+      <div class="form-group" style="flex-direction: row; justify-content: space-between; align-items: center; padding: 4px 0; width: 100%;">
+        <div>
+          <label class="form-label" style="margin-bottom: 0; font-size: 13px; cursor: pointer;" for="settings-online-status">Статус «В сети»</label>
+          <span style="font-size: 10px; color: var(--gray-muted); display: block;">Показывать статус друзьям</span>
         </div>
+        <label class="switch-toggle" style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
+          <input type="checkbox" id="settings-online-status" style="opacity: 0; width: 0; height: 0;">
+          <span class="switch-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--gray-border); transition: .3s; border-radius: 24px;"></span>
+        </label>
       </div>
 
-      <!-- Public Name -->
-      <div class="form-group">
-        <label class="form-label" style="font-size: 11px; margin-bottom: 4px;" for="settings-display-name">Публичное имя</label>
-        <input type="text" id="settings-display-name" class="form-input" style="height: 36px; padding: 0 12px; font-size: 13px; border-radius: 8px; width: 100%;" placeholder="Введите имя" required>
+      <!-- Safe Search switch -->
+      <div class="form-group" style="flex-direction: row; justify-content: space-between; align-items: center; padding: 4px 0; width: 100%;">
+        <div>
+          <label class="form-label" style="margin-bottom: 0; font-size: 13px; cursor: pointer;" for="settings-safe-search">Безопасный поиск</label>
+          <span style="font-size: 10px; color: var(--gray-muted); display: block;">Скрывать деликатные пины</span>
+        </div>
+        <label class="switch-toggle" style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
+          <input type="checkbox" id="settings-safe-search" style="opacity: 0; width: 0; height: 0;">
+          <span class="switch-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--gray-border); transition: .3s; border-radius: 24px;"></span>
+        </label>
       </div>
 
-      <!-- Username -->
-      <div class="form-group">
-        <label class="form-label" style="font-size: 11px; margin-bottom: 4px;" for="settings-username">Имя пользователя (@username)</label>
-        <input type="text" id="settings-username" class="form-input" style="height: 36px; padding: 0 12px; font-size: 13px; border-radius: 8px; width: 100%;" placeholder="Введите username" required>
-        <span id="settings-username-error" style="font-size: 11px; color: var(--pinterest-red); margin-top: 4px; display: none;">Имя пользователя занято.</span>
-      </div>
-
-      <!-- Bio -->
-      <div class="form-group">
-        <label class="form-label" style="font-size: 11px; margin-bottom: 4px;" for="settings-bio">О себе</label>
-        <textarea id="settings-bio" class="create-form-textarea" style="height: 54px; font-size: 13px; border: 1px solid var(--gray-border); border-radius: 8px; padding: 8px; line-height: 1.3; width: 100%;" placeholder="Расскажите о себе..."></textarea>
+      <!-- Sound Effects switch -->
+      <div class="form-group" style="flex-direction: row; justify-content: space-between; align-items: center; padding: 4px 0; width: 100%;">
+        <div>
+          <label class="form-label" style="margin-bottom: 0; font-size: 13px; cursor: pointer;" for="settings-sound-effects">Звуки сообщений</label>
+          <span style="font-size: 10px; color: var(--gray-muted); display: block;">Звук при входящем сообщении</span>
+        </div>
+        <label class="switch-toggle" style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
+          <input type="checkbox" id="settings-sound-effects" style="opacity: 0; width: 0; height: 0;">
+          <span class="switch-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--gray-border); transition: .3s; border-radius: 24px;"></span>
+        </label>
       </div>
 
       <!-- Theme Switcher -->

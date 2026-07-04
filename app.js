@@ -17,12 +17,23 @@ let state = {
   activeBoardId: null, // If viewing a specific board's pins (either in feed or profile)
   openPin: null, // Currently opened pin in modal
   theme: 'light', // 'light' or 'dark'
-  activeChatFriend: null
+  activeChatFriend: null,
+  appSettings: {
+    gridColumns: 5,
+    privateProfile: false,
+    onlineStatus: true,
+    safeSearch: false,
+    soundEffects: true
+  }
 };
 
 // Helper: unique key for conversation thread (alphabetical sort order)
 function getChatKey(u1, u2) {
   return [u1, u2].sort().join('_');
+}
+
+function applyGridSettings(columns) {
+  document.documentElement.style.setProperty('--grid-columns', columns);
 }
 
 // --- Local Storage Initialization ---
@@ -42,14 +53,25 @@ function initLocalStorage() {
   if (!localStorage.getItem('pinterest_chats')) {
     localStorage.setItem('pinterest_chats', JSON.stringify(INITIAL_CHATS));
   }
+  if (!localStorage.getItem('pinterest_app_settings')) {
+    localStorage.setItem('pinterest_app_settings', JSON.stringify({
+      gridColumns: 5,
+      privateProfile: false,
+      onlineStatus: true,
+      safeSearch: false,
+      soundEffects: true
+    }));
+  }
 
   state.pins = JSON.parse(localStorage.getItem('pinterest_pins'));
   state.users = JSON.parse(localStorage.getItem('pinterest_users'));
   state.theme = localStorage.getItem('pinterest_theme');
   state.isLoggedIn = localStorage.getItem('pinterest_logged_in') === 'true';
   state.chats = JSON.parse(localStorage.getItem('pinterest_chats'));
+  state.appSettings = JSON.parse(localStorage.getItem('pinterest_app_settings'));
 
   applyTheme(state.theme);
+  applyGridSettings(state.appSettings.gridColumns);
 
   if (state.isLoggedIn) {
     const savedUser = localStorage.getItem('pinterest_current_user');
@@ -233,15 +255,14 @@ const leftSettingsSidebar = document.getElementById('left-settings-sidebar');
 const leftSidebarBackdrop = document.getElementById('left-sidebar-backdrop');
 const mobileSettingsToggle = document.getElementById('mobile-settings-toggle');
 const leftDrawerCloseBtn = document.getElementById('left-drawer-close');
-const settingsAvatarUrl = document.getElementById('settings-avatar-url');
-const settingsAvatarPreview = document.getElementById('settings-avatar-preview');
-const settingsDisplayName = document.getElementById('settings-display-name');
-const settingsUsername = document.getElementById('settings-username');
-const settingsBio = document.getElementById('settings-bio');
+const settingsGridColumns = document.getElementById('settings-grid-columns');
+const settingsPrivateProfile = document.getElementById('settings-private-profile');
+const settingsOnlineStatus = document.getElementById('settings-online-status');
+const settingsSafeSearch = document.getElementById('settings-safe-search');
+const settingsSoundEffects = document.getElementById('settings-sound-effects');
 const themeToggleCheck = document.getElementById('theme-toggle-check');
 const saveSettingsBtn = document.getElementById('save-settings-btn');
 const logoutBtn = document.getElementById('logout-btn');
-const settingsUsernameError = document.getElementById('settings-username-error');
 
 // RIGHT SIDEBAR: NAVIGATION & CATALOG ELEMENTS
 const rightCatalogSidebar = document.getElementById('right-catalog-sidebar');
@@ -1024,146 +1045,53 @@ function createNewBoard() {
 
 // --- Settings Operations (Fixed on the Left Sidebar) ---
 function setupSettingsPage() {
-  const user = state.currentUser;
-  settingsAvatarUrl.value = user.avatar || '';
-  settingsAvatarPreview.src = user.avatar || '';
-  settingsDisplayName.value = user.name || '';
-  settingsUsername.value = user.username || '';
-  settingsBio.value = user.bio || '';
+  const settings = state.appSettings || {
+    gridColumns: 5,
+    privateProfile: false,
+    onlineStatus: true,
+    safeSearch: false,
+    soundEffects: true
+  };
+  settingsGridColumns.value = settings.gridColumns;
+  settingsPrivateProfile.checked = settings.privateProfile;
+  settingsOnlineStatus.checked = settings.onlineStatus;
+  settingsSafeSearch.checked = settings.safeSearch;
+  settingsSoundEffects.checked = settings.soundEffects;
   themeToggleCheck.checked = state.theme === 'dark';
-  settingsUsernameError.style.display = 'none';
-}
-
-function handleAvatarUrlChange() {
-  const val = settingsAvatarUrl.value.trim();
-  if (val !== '') {
-    settingsAvatarPreview.src = val;
-  }
 }
 
 function saveSettings() {
-  const name = settingsDisplayName.value.trim();
-  const username = settingsUsername.value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
-  const bio = settingsBio.value.trim();
-  const avatar = settingsAvatarUrl.value.trim();
+  const columns = parseInt(settingsGridColumns.value, 10);
+  const privateProfile = settingsPrivateProfile.checked;
+  const onlineStatus = settingsOnlineStatus.checked;
+  const safeSearch = settingsSafeSearch.checked;
+  const soundEffects = settingsSoundEffects.checked;
   const isDark = themeToggleCheck.checked;
 
-  if (name === '' || username === '') {
-    alert('Имя и имя пользователя обязательны для заполнения!');
-    return;
-  }
-
-  if (username !== state.currentUser.username) {
-    const exists = state.users.some(u => u.username === username);
-    if (exists) {
-      settingsUsernameError.style.display = 'block';
-      return;
-    }
-  }
+  state.appSettings = {
+    gridColumns: columns,
+    privateProfile: privateProfile,
+    onlineStatus: onlineStatus,
+    safeSearch: safeSearch,
+    soundEffects: soundEffects
+  };
 
   const targetTheme = isDark ? 'dark' : 'light';
   applyTheme(targetTheme);
+  applyGridSettings(columns);
 
-  const oldUsername = state.currentUser.username;
-  if (username !== oldUsername) {
-    const targetIdx = state.users.findIndex(u => u.username === oldUsername);
-    if (targetIdx !== -1) {
-      state.users[targetIdx].username = username;
-    }
-
-    const oldBoards = localStorage.getItem(`pinterest_boards_${oldUsername}`);
-    if (oldBoards) {
-      localStorage.setItem(`pinterest_boards_${username}`, oldBoards);
-      localStorage.removeItem(`pinterest_boards_${oldUsername}`);
-    }
-    const oldFollowed = localStorage.getItem(`pinterest_followed_${oldUsername}`);
-    if (oldFollowed) {
-      localStorage.setItem(`pinterest_followed_${username}`, oldFollowed);
-      localStorage.removeItem(`pinterest_followed_${oldUsername}`);
-    }
-
-    Object.keys(state.chats).forEach(oldKey => {
-      if (oldKey.includes(oldUsername)) {
-        const parts = oldKey.split('_');
-        const otherUser = parts.find(p => p !== oldUsername);
-        const newKey = getChatKey(username, otherUser);
-        
-        const updatedMsgs = state.chats[oldKey].map(msg => {
-          if (msg.sender === oldUsername) {
-            return { ...msg, sender: username };
-          }
-          return msg;
-        });
-
-        state.chats[newKey] = updatedMsgs;
-        delete state.chats[oldKey];
-      }
-    });
-
-    state.users.forEach(u => {
-      if (u.friends) {
-        u.friends = u.friends.map(f => f === oldUsername ? username : f);
-      }
-    });
-
-    state.pins.forEach(pin => {
-      if (pin.creator.username === oldUsername) {
-        pin.creator.username = username;
-        pin.creator.name = name;
-        pin.creator.avatar = avatar;
-      }
-      if (pin.comments) {
-        pin.comments.forEach(c => {
-          if (c.username === oldUsername) {
-            c.username = username;
-            c.avatar = avatar;
-          }
-        });
-      }
-    });
-  } else {
-    state.pins.forEach(pin => {
-      if (pin.creator.username === username) {
-        pin.creator.name = name;
-        pin.creator.avatar = avatar;
-      }
-      if (pin.comments) {
-        pin.comments.forEach(c => {
-          if (c.username === username) {
-            c.avatar = avatar;
-          }
-        });
-      }
-    });
-  }
-
-  state.currentUser.name = name;
-  state.currentUser.username = username;
-  state.currentUser.bio = bio;
-  state.currentUser.avatar = avatar;
-
+  localStorage.setItem('pinterest_app_settings', JSON.stringify(state.appSettings));
   saveState();
 
-  if (username !== oldUsername) {
-    loadUserSpecificData(username);
-    if (state.activeChatFriend) {
-      state.activeChatFriend = null;
-    }
-  }
-
-  navLinks.profileImg.querySelector('img').src = avatar;
-
-  renderSidebarCategories();
-  renderSidebarBoards();
-
-  // Close Settings sidebar drawer on save
   closeLeftSidebar();
 
-  if (state.currentView === 'profile') {
+  if (state.currentView === 'feed') {
+    renderFeed();
+  } else if (state.currentView === 'profile') {
     renderProfile();
   }
 
-  alert('Настройки профиля успешно сохранены!');
+  alert('Настройки приложения успешно сохранены!');
 }
 
 // --- Pin Detail Modal Actions ---
@@ -1656,7 +1584,6 @@ function setupEventListeners() {
   });
 
   // Settings fixed panel listeners
-  settingsAvatarUrl.addEventListener('input', handleAvatarUrlChange);
   saveSettingsBtn.addEventListener('click', saveSettings);
   logoutBtn.addEventListener('click', handleLogout);
 

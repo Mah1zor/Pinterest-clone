@@ -622,24 +622,24 @@ input, textarea, select {
 }
 
 .pins-grid {
-  column-count: 5; /* Full 5-column layout */
+  column-count: var(--grid-columns, 5); /* Dynamic column count */
   column-gap: 16px;
   width: 100%;
 }
 
 @media (max-width: 1400px) {
   .pins-grid {
-    column-count: 4;
+    column-count: min(var(--grid-columns, 5), 4);
   }
 }
 @media (max-width: 1024px) {
   .pins-grid {
-    column-count: 3;
+    column-count: min(var(--grid-columns, 5), 3);
   }
 }
 @media (max-width: 768px) {
   .pins-grid {
-    column-count: 2;
+    column-count: min(var(--grid-columns, 5), 2);
   }
 }
 @media (max-width: 480px) {

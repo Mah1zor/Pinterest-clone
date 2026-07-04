@@ -1827,7 +1827,8 @@ input, textarea, select {
 /* Switch Toggle layout classes for Chat */
 .chat-container {
   display: flex;
-  height: 520px;
+  height: calc(100vh - 220px);
+  min-height: 480px;
   background-color: var(--white);
   border-radius: var(--border-radius-card);
   border: 1px solid var(--gray-border);

@@ -49,8 +49,8 @@ body {
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -269,16 +269,26 @@ input, textarea, select {
   transition: background-color 0.3s ease;
 }
 
-/* Mobile Hamburguer Toggle styles */
-.mobile-menu-toggle {
-  display: none;
-  margin-right: 12px;
+/* Toggles styled permanently */
+.mobile-settings-toggle, .mobile-menu-toggle {
+  display: flex !important;
   color: var(--black);
+  font-size: 20px;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.mobile-settings-toggle:hover, .mobile-menu-toggle:hover {
+  background-color: var(--gray-light);
 }
 
 .logo-container {
   display: flex;
   align-items: center;
+  margin-left: 8px;
   margin-right: 8px;
 }
 
@@ -467,22 +477,57 @@ input, textarea, select {
   object-fit: cover;
 }
 
-/* LEFT SIDE CATALOG PANEL */
+/* FLY-OUT SIDEBAR DRAWERS */
 .side-catalog {
   position: fixed;
   top: 80px;
-  left: 0;
-  width: 260px;
+  width: 300px; /* Comfortable width for settings form layout */
   height: calc(100vh - 80px);
   background-color: var(--white);
-  border-right: 1px solid var(--gray-border);
   padding: 24px 16px;
   overflow-y: auto;
-  z-index: 95;
+  z-index: 1010; /* Displays above main header content */
   display: flex;
   flex-direction: column;
   gap: 16px;
   transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.3s ease;
+}
+
+/* Fly-out Settings sidebar on the left */
+.side-catalog.left-side {
+  left: -300px;
+  border-right: 1px solid var(--gray-border);
+}
+.side-catalog.left-side.active {
+  transform: translateX(300px);
+  box-shadow: var(--shadow-modal);
+}
+
+/* Fly-out Catalog sidebar on the right */
+.side-catalog.right-side {
+  right: -300px;
+  border-left: 1px solid var(--gray-border);
+}
+.side-catalog.right-side.active {
+  transform: translateX(-300px);
+  box-shadow: var(--shadow-modal);
+}
+
+/* Drawer Close X icon inside panels */
+.drawer-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: var(--black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: var(--transition-smooth);
+  flex-shrink: 0;
+}
+.drawer-close-btn:hover {
+  background-color: var(--gray-light);
 }
 
 .catalog-section {
@@ -544,14 +589,21 @@ input, textarea, select {
   margin: 6px 12px;
 }
 
-/* App Main Content Area */
+/* Settings Forms inside Left Sidebar */
+.settings-sidebar-form .form-group {
+  margin-bottom: 12px;
+}
+
+/* App Main Content Area (Stretches full width since sidebars are fly-out!) */
 .app-content {
   margin-top: 80px; /* Clearance for header */
-  margin-left: 260px; /* Clearance for left sidebar catalog */
+  margin-left: 0; /* No margin offsets on desktop */
+  margin-right: 0;
   min-height: calc(100vh - 80px);
   padding: 32px;
   box-sizing: border-box;
-  transition: margin-left 0.3s ease;
+  width: 100%;
+  transition: var(--transition-smooth);
 }
 
 .view-section {
@@ -563,24 +615,29 @@ input, textarea, select {
   display: block;
 }
 
-/* Masonry Feed Layout */
+/* Masonry Feed Layout (Full screen 5 columns) */
 .feed-container {
-  max-width: 1600px;
+  max-width: 1720px;
   margin: 0 auto;
 }
 
 .pins-grid {
-  column-count: 4; /* Readjust for shifted content area */
+  column-count: 5; /* Full 5-column layout */
   column-gap: 16px;
   width: 100%;
 }
 
 @media (max-width: 1400px) {
   .pins-grid {
+    column-count: 4;
+  }
+}
+@media (max-width: 1024px) {
+  .pins-grid {
     column-count: 3;
   }
 }
-@media (max-width: 1080px) {
+@media (max-width: 768px) {
   .pins-grid {
     column-count: 2;
   }
@@ -589,6 +646,25 @@ input, textarea, select {
   .pins-grid {
     column-count: 1;
   }
+}
+
+/* Backdrop Dimming Overlays on all screens */
+.sidebar-backdrop {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 1005;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  backdrop-filter: blur(4px);
+}
+.sidebar-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* Pin Card */
@@ -649,7 +725,6 @@ input, textarea, select {
   align-items: center;
 }
 
-/* Quick Board Select in Overlay */
 .overlay-board-btn {
   background-color: rgba(255, 255, 255, 0.9);
   color: #111;
@@ -702,7 +777,7 @@ input, textarea, select {
   display: flex;
   align-items: center;
   gap: 4px;
-  max-width: 150px;
+  max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -734,7 +809,7 @@ input, textarea, select {
   transform: scale(1.05);
 }
 
-/* Pin Card Footer Info (under card image) */
+/* Pin Card Footer Info */
 .pin-card-info {
   padding: 8px 4px;
 }
@@ -1577,7 +1652,6 @@ input, textarea, select {
   }
 }
 
-/* Drag & Drop simulated upload box */
 .upload-dropzone {
   border: 2px dashed var(--gray-border);
   border-radius: 20px;
@@ -1621,7 +1695,6 @@ input, textarea, select {
   line-height: 1.4;
 }
 
-/* Image preview in upload box */
 .upload-preview-img {
   position: absolute;
   top: 0;
@@ -1735,8 +1808,8 @@ input, textarea, select {
 .switch-slider::before {
   content: "";
   position: absolute;
-  height: 20px;
-  width: 20px;
+  height: 16px;
+  width: 16px;
   left: 4px;
   bottom: 4px;
   background-color: white;
@@ -1748,7 +1821,7 @@ input, textarea, select {
   background-color: #4cd964;
 }
 .switch-toggle input:checked + .switch-slider::before {
-  transform: translateX(22px);
+  transform: translateX(20px);
 }
 
 /* Switch Toggle layout classes for Chat */

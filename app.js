@@ -10,7 +10,7 @@ let state = {
   boards: [],
   chats: {},
   followedCreators: new Set(),
-  currentView: 'feed', // 'feed', 'create', 'profile', 'settings'
+  currentView: 'feed', // 'feed', 'create', 'profile'
   activeCategory: 'all',
   searchQuery: '',
   activeProfileTab: 'saved', // 'saved', 'created', 'chats'
@@ -126,8 +126,7 @@ function applyTheme(theme) {
 const views = {
   feed: document.getElementById('feed-view'),
   create: document.getElementById('create-view'),
-  profile: document.getElementById('profile-view'),
-  settings: document.getElementById('settings-view')
+  profile: document.getElementById('profile-view')
 };
 
 const navLinks = {
@@ -214,18 +213,6 @@ const authToggleText = document.getElementById('auth-toggle-text');
 const authTitle = document.getElementById('auth-title');
 const authErrorMsg = document.getElementById('auth-error-msg');
 
-// SETTINGS VIEW ELEMENTS
-const settingsAvatarUrl = document.getElementById('settings-avatar-url');
-const settingsAvatarPreview = document.getElementById('settings-avatar-preview');
-const settingsDisplayName = document.getElementById('settings-display-name');
-const settingsUsername = document.getElementById('settings-username');
-const settingsBio = document.getElementById('settings-bio');
-const themeToggleCheck = document.getElementById('theme-toggle-check');
-const saveSettingsBtn = document.getElementById('save-settings-btn');
-const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
-const logoutBtn = document.getElementById('logout-btn');
-const settingsUsernameError = document.getElementById('settings-username-error');
-
 // PROFILE CHATS VIEW ELEMENTS
 const profileFriendsList = document.getElementById('profile-friends-list');
 const addFriendInput = document.getElementById('add-friend-input');
@@ -240,18 +227,33 @@ const chatMessagesLog = document.getElementById('chat-messages-log');
 const chatMessageInput = document.getElementById('chat-message-input');
 const chatSendBtn = document.getElementById('chat-send-btn');
 
-// LEFT SIDEBAR CATALOG ELEMENTS
-const sideCatalog = document.getElementById('side-catalog');
-const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+// LEFT SIDEBAR: PROFILE SETTINGS ELEMENTS
+const leftSettingsSidebar = document.getElementById('left-settings-sidebar');
+const leftSidebarBackdrop = document.getElementById('left-sidebar-backdrop');
+const mobileSettingsToggle = document.getElementById('mobile-settings-toggle');
+const leftDrawerCloseBtn = document.getElementById('left-drawer-close');
+const settingsAvatarUrl = document.getElementById('settings-avatar-url');
+const settingsAvatarPreview = document.getElementById('settings-avatar-preview');
+const settingsDisplayName = document.getElementById('settings-display-name');
+const settingsUsername = document.getElementById('settings-username');
+const settingsBio = document.getElementById('settings-bio');
+const themeToggleCheck = document.getElementById('theme-toggle-check');
+const saveSettingsBtn = document.getElementById('save-settings-btn');
+const logoutBtn = document.getElementById('logout-btn');
+const settingsUsernameError = document.getElementById('settings-username-error');
+
+// RIGHT SIDEBAR: NAVIGATION & CATALOG ELEMENTS
+const rightCatalogSidebar = document.getElementById('right-catalog-sidebar');
+const rightSidebarBackdrop = document.getElementById('right-sidebar-backdrop');
 const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+const rightDrawerCloseBtn = document.getElementById('right-drawer-close');
 const sideCategoriesList = document.getElementById('side-categories-list');
 const sideBoardsList = document.getElementById('side-boards-list');
 
-// Sidebar menu buttons
+// Right sidebar shortcuts
 const sideNavHome = document.getElementById('side-nav-home');
 const sideNavCreate = document.getElementById('side-nav-create');
 const sideNavProfile = document.getElementById('side-nav-profile');
-const sideNavSettings = document.getElementById('side-nav-settings');
 
 let uploadedImageBase64 = null; 
 
@@ -259,7 +261,6 @@ let uploadedImageBase64 = null;
 function switchView(viewName) {
   state.currentView = viewName;
   
-  // Update view classes
   Object.keys(views).forEach(key => {
     if (key === viewName) {
       views[key].classList.add('active');
@@ -268,7 +269,6 @@ function switchView(viewName) {
     }
   });
 
-  // Sync header top navigations active highlights
   navLinks.home.classList.remove('active');
   navLinks.create.classList.remove('active');
   
@@ -286,40 +286,65 @@ function switchView(viewName) {
     renderProfile();
   }
 
-  if (viewName === 'settings') {
-    setupSettingsPage();
-  }
-
-  // Close off-canvas drawer sidebar on mobile
-  closeMobileSidebar();
+  // Close fly-out drawers upon route switch
+  closeLeftSidebar();
+  closeRightSidebar();
   
-  // Update sidebar active highlights
-  syncSidebarNavHighlights();
+  // Update sidebar active classes
+  syncSidebarCatalogHighlights();
 }
 
-// Mobile sidebar controls
-function toggleMobileSidebar() {
-  sideCatalog.classList.toggle('active');
-  sidebarBackdrop.classList.toggle('active');
+// Left Settings Sidebar Drawer Controls
+function toggleLeftSidebar() {
+  leftSettingsSidebar.classList.toggle('active');
+  leftSidebarBackdrop.classList.toggle('active');
+  
+  if (leftSettingsSidebar.classList.contains('active')) {
+    closeRightSidebar(); // Automatically close catalog if opening settings
+  }
 }
 
-function closeMobileSidebar() {
-  sideCatalog.classList.remove('active');
-  sidebarBackdrop.classList.remove('active');
+function openLeftSidebar() {
+  leftSettingsSidebar.classList.add('active');
+  leftSidebarBackdrop.classList.add('active');
+  closeRightSidebar(); // Avoid double drawers overlap
 }
 
-// Highlight the currently active sidebar navigation item
-function syncSidebarNavHighlights() {
-  // Reset all active classes
+function closeLeftSidebar() {
+  leftSettingsSidebar.classList.remove('active');
+  leftSidebarBackdrop.classList.remove('active');
+}
+
+// Right Catalog Sidebar Drawer Controls
+function toggleRightSidebar() {
+  rightCatalogSidebar.classList.toggle('active');
+  rightSidebarBackdrop.classList.toggle('active');
+
+  if (rightCatalogSidebar.classList.contains('active')) {
+    closeLeftSidebar(); // Automatically close settings if opening catalog
+  }
+}
+
+function openRightSidebar() {
+  rightCatalogSidebar.classList.add('active');
+  rightSidebarBackdrop.classList.add('active');
+  closeLeftSidebar();
+}
+
+function closeRightSidebar() {
+  rightCatalogSidebar.classList.remove('active');
+  rightSidebarBackdrop.classList.remove('active');
+}
+
+// Sync selection highlights on the right catalog sidebar
+function syncSidebarCatalogHighlights() {
   document.querySelectorAll('.catalog-item').forEach(el => el.classList.remove('active'));
 
   if (state.currentView === 'feed') {
     if (state.activeBoardId !== null) {
-      // Highlight board item
       const boardEl = document.querySelector(`.catalog-item[data-board-id="${state.activeBoardId}"]`);
       if (boardEl) boardEl.classList.add('active');
     } else {
-      // Highlight category item or Лента
       if (state.activeCategory === 'all') {
         sideNavHome.classList.add('active');
       } else {
@@ -331,9 +356,15 @@ function syncSidebarNavHighlights() {
     sideNavCreate.classList.add('active');
   } else if (state.currentView === 'profile') {
     sideNavProfile.classList.add('active');
-  } else if (state.currentView === 'settings') {
-    sideNavSettings.classList.add('active');
   }
+}
+
+// UX settings helper: slide open settings drawer and focus name field
+function triggerSettingsAction() {
+  openLeftSidebar();
+  setTimeout(() => {
+    settingsDisplayName.focus();
+  }, 300);
 }
 
 // --- Authentication Controllers ---
@@ -425,6 +456,7 @@ function loginUserSuccess() {
   
   navLinks.profileImg.querySelector('img').src = state.currentUser.avatar;
 
+  setupSettingsPage(); // Bind settings inputs
   renderSidebarCategories();
   renderSidebarBoards();
   renderFeed();
@@ -440,9 +472,10 @@ function handleLogout() {
   saveState();
   
   authOverlay.classList.remove('hidden');
+  closeLeftSidebar();
 }
 
-// --- Render Sidebar Categories & Boards ---
+// --- Render Catalog Sidebar Categories & Boards ---
 function renderSidebarCategories() {
   sideCategoriesList.innerHTML = '';
   
@@ -473,6 +506,7 @@ function renderSidebarCategories() {
       clearSearchBtn.classList.remove('visible');
 
       switchView('feed');
+      closeRightSidebar(); // Auto-dismiss catalog sidebar on selection
     });
 
     sideCategoriesList.appendChild(btn);
@@ -504,6 +538,7 @@ function renderSidebarBoards() {
       clearSearchBtn.classList.remove('visible');
 
       switchView('feed');
+      closeRightSidebar(); // Auto-dismiss catalog sidebar on selection
     });
 
     sideBoardsList.appendChild(btn);
@@ -622,7 +657,6 @@ function toggleSavePinDirect(pinId, buttonEl) {
       boardBtn.textContent = savedBoard.name;
     }
   }
-  // Refresh sidebar counters
   renderSidebarBoards();
 }
 
@@ -630,14 +664,12 @@ function toggleSavePinDirect(pinId, buttonEl) {
 function renderFeed() {
   let pinsToRender = [...state.pins];
 
-  // 1. Filter by active board link (if set)
   if (state.activeBoardId) {
     const board = state.boards.find(b => b.id === state.activeBoardId);
     if (board) {
       pinsToRender = pinsToRender.filter(pin => board.pinIds.includes(pin.id));
     }
   } else {
-    // 2. Filter by sidebar categories (otherwise)
     if (state.activeCategory !== 'all') {
       const categoryObj = CATEGORIES.find(c => c.id === state.activeCategory);
       if (categoryObj && categoryObj.tag) {
@@ -646,7 +678,6 @@ function renderFeed() {
     }
   }
 
-  // 3. Filter by search input
   if (state.searchQuery.trim() !== '') {
     const query = state.searchQuery.toLowerCase().trim();
     pinsToRender = pinsToRender.filter(pin => 
@@ -849,7 +880,6 @@ function showChatPlaceholder() {
   chatActivePanel.classList.add('hidden');
 }
 
-// Open active chat log
 function openActiveChat(friend) {
   chatPlaceholder.classList.add('hidden');
   chatActivePanel.classList.remove('hidden');
@@ -988,17 +1018,16 @@ function createNewBoard() {
   }
   setupCreatePinPage(); 
   
-  // Refresh left sidebar list
   renderSidebarBoards();
 }
 
-// --- Settings Page Operations ---
+// --- Settings Operations (Fixed on the Left Sidebar) ---
 function setupSettingsPage() {
   const user = state.currentUser;
-  settingsAvatarUrl.value = user.avatar;
-  settingsAvatarPreview.src = user.avatar;
-  settingsDisplayName.value = user.name;
-  settingsUsername.value = user.username;
+  settingsAvatarUrl.value = user.avatar || '';
+  settingsAvatarPreview.src = user.avatar || '';
+  settingsDisplayName.value = user.name || '';
+  settingsUsername.value = user.username || '';
   settingsBio.value = user.bio || '';
   themeToggleCheck.checked = state.theme === 'dark';
   settingsUsernameError.style.display = 'none';
@@ -1121,8 +1150,14 @@ function saveSettings() {
   renderSidebarCategories();
   renderSidebarBoards();
 
+  // Close Settings sidebar drawer on save
+  closeLeftSidebar();
+
+  if (state.currentView === 'profile') {
+    renderProfile();
+  }
+
   alert('Настройки профиля успешно сохранены!');
-  switchView('profile');
 }
 
 // --- Pin Detail Modal Actions ---
@@ -1295,7 +1330,6 @@ function submitComment() {
 
 function renderModalBoardDropdown(pin) {
   modalBoardsDropdown.innerHTML = '';
-  
   const containingBoard = state.boards.find(b => b.pinIds.includes(pin.id));
   
   if (containingBoard) {
@@ -1363,8 +1397,6 @@ function savePinToBoard(pinId, boardId) {
   modalSaveBtn.classList.add('saved');
 
   saveState();
-  
-  // Refresh sidebar list
   renderSidebarBoards();
 }
 
@@ -1401,7 +1433,6 @@ function handleMainModalSaveBtn() {
       saveState();
     }
   }
-  // Refresh sidebar list
   renderSidebarBoards();
 }
 
@@ -1516,15 +1547,13 @@ function publishPin() {
   state.activeProfileTab = 'created';
   state.activeBoardId = null;
   
-  // Refresh sidebar board list counters
   renderSidebarBoards();
-
   switchView('profile');
 }
 
 // --- Event Listeners Binding ---
 function setupEventListeners() {
-  // Top header nav bindings (syncs with side Catalog as fallback)
+  // Top header nav bindings
   navLinks.home.addEventListener('click', () => {
     state.activeCategory = 'all';
     state.activeBoardId = null;
@@ -1555,15 +1584,17 @@ function setupEventListeners() {
     switchView('feed');
   });
 
-  document.getElementById('header-settings-btn').addEventListener('click', () => {
-    switchView('settings');
-  });
+  // Settings fixed panel listeners
+  settingsAvatarUrl.addEventListener('input', handleAvatarUrlChange);
+  saveSettingsBtn.addEventListener('click', saveSettings);
+  logoutBtn.addEventListener('click', handleLogout);
 
-  document.getElementById('profile-edit-btn').addEventListener('click', () => {
-    switchView('settings');
-  });
+  // Left settings sidebar drawers toggles
+  mobileSettingsToggle.addEventListener('click', toggleLeftSidebar);
+  leftSidebarBackdrop.addEventListener('click', closeLeftSidebar);
+  leftDrawerCloseBtn.addEventListener('click', closeLeftSidebar);
 
-  // Left Sidebar Catalog menu click bindings
+  // Right sidebar catalog menu bindings
   sideNavHome.addEventListener('click', () => {
     state.activeCategory = 'all';
     state.activeBoardId = null;
@@ -1573,34 +1604,32 @@ function setupEventListeners() {
     renderSidebarCategories();
     renderSidebarBoards();
     switchView('feed');
+    closeRightSidebar(); // Auto-dismiss catalog sidebar on selection
   });
 
-  sideNavCreate.addEventListener('click', () => switchView('create'));
+  sideNavCreate.addEventListener('click', () => {
+    switchView('create');
+    closeRightSidebar();
+  });
   
   sideNavProfile.addEventListener('click', () => {
     state.activeProfileTab = 'saved';
     state.activeBoardId = null;
     switchView('profile');
+    closeRightSidebar();
   });
 
-  sideNavSettings.addEventListener('click', () => switchView('settings'));
+  // Right sidebar catalog drawers toggles
+  mobileMenuToggle.addEventListener('click', toggleRightSidebar);
+  rightSidebarBackdrop.addEventListener('click', closeRightSidebar);
+  rightDrawerCloseBtn.addEventListener('click', closeRightSidebar);
 
-  // Mobile Hamburger Toggle triggers
-  mobileMenuToggle.addEventListener('click', toggleMobileSidebar);
-  sidebarBackdrop.addEventListener('click', closeMobileSidebar);
-
-  // Authentication listeners
+  // Authentication overlays
   loginForm.addEventListener('submit', handleLoginSubmit);
   registerForm.addEventListener('submit', handleRegisterSubmit);
   authToggleBtn.addEventListener('click', toggleAuthForm);
 
-  // Settings page listeners
-  settingsAvatarUrl.addEventListener('input', handleAvatarUrlChange);
-  saveSettingsBtn.addEventListener('click', saveSettings);
-  cancelSettingsBtn.addEventListener('click', () => switchView('profile'));
-  logoutBtn.addEventListener('click', handleLogout);
-
-  // Profile chat listeners
+  // Profile chat threads
   addFriendBtn.addEventListener('click', addFriendByUsername);
   addFriendInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') addFriendByUsername();
@@ -1693,7 +1722,7 @@ function setupEventListeners() {
 
   modalCommentSubmitBtn.addEventListener('click', submitComment);
 
-  // Profile Tab toggles
+  // Profile tabs toggles
   tabSaved.addEventListener('click', () => {
     state.activeProfileTab = 'saved';
     state.activeBoardId = null;
@@ -1780,6 +1809,7 @@ function initApp() {
   if (state.isLoggedIn) {
     authOverlay.classList.add('hidden');
     navLinks.profileImg.querySelector('img').src = state.currentUser.avatar;
+    setupSettingsPage(); // Bind settings left-side properties
     renderSidebarCategories();
     renderSidebarBoards();
     renderFeed();

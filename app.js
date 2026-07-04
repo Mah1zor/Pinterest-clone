@@ -216,6 +216,7 @@ const authErrorMsg = document.getElementById('auth-error-msg');
 
 // DEDICATED CHAT & FRIENDS VIEW ELEMENTS
 const profileFriendsList = document.getElementById('profile-friends-list');
+const profileRecommendationsList = document.getElementById('profile-recommendations-list');
 const addFriendInput = document.getElementById('add-friend-input');
 const addFriendBtn = document.getElementById('add-friend-btn');
 const addFriendError = document.getElementById('add-friend-error');
@@ -369,9 +370,11 @@ function syncSidebarCatalogHighlights() {
   }
 }
 
-// UX Settings Action Helper (slides open Settings panel)
+// UX Settings Action Helper (slides open Settings panel on mobile, focuses input on desktop)
 function triggerSettingsAction() {
-  openLeftSidebar();
+  if (window.innerWidth <= 1024) {
+    openLeftSidebar();
+  }
   setTimeout(() => {
     settingsDisplayName.focus();
   }, 300);
@@ -866,6 +869,43 @@ function renderChatsInterface() {
     });
   }
 
+  // Render recommendations list
+  profileRecommendationsList.innerHTML = '';
+  const friendsSet = new Set(friends);
+  const recUsers = state.users.filter(u => 
+    u.username !== state.currentUser.username && 
+    !friendsSet.has(u.username)
+  );
+
+  if (recUsers.length === 0) {
+    profileRecommendationsList.innerHTML = '<div style="font-size: 12px; color: var(--gray-muted); padding: 8px 0; text-align: center;">Рекомендаций нет</div>';
+  } else {
+    recUsers.forEach(u => {
+      const item = document.createElement('div');
+      item.className = 'friend-item';
+      item.style.cursor = 'default';
+      item.innerHTML = `
+        <div class="friend-avatar">
+          <img src="${u.avatar}" alt="${u.name}">
+        </div>
+        <div class="friend-info" style="flex-grow: 1; overflow: hidden;">
+          <div class="friend-name" style="font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${u.name}</div>
+          <div class="friend-username" style="font-size: 11px;">@${u.username}</div>
+        </div>
+        <button class="profile-btn primary add-rec-friend-btn" style="padding: 6px 10px; font-size: 11px; border-radius: 12px; height: auto; flex-shrink: 0; min-width: unset; width: auto; margin-left: 8px;" title="Добавить друга">
+          <i class="fa-solid fa-plus"></i>
+        </button>
+      `;
+
+      const addBtn = item.querySelector('.add-rec-friend-btn');
+      addBtn.addEventListener('click', () => {
+        addFriendDirectly(u.username);
+      });
+
+      profileRecommendationsList.appendChild(item);
+    });
+  }
+
   if (state.activeChatFriend) {
     const friendObj = state.users.find(u => u.username === state.activeChatFriend);
     if (friendObj) {
@@ -877,6 +917,24 @@ function renderChatsInterface() {
   } else {
     showChatPlaceholder();
   }
+}
+
+function addFriendDirectly(username) {
+  if (!state.currentUser.friends) state.currentUser.friends = [];
+  if (!state.currentUser.friends.includes(username)) {
+    state.currentUser.friends.push(username);
+  }
+
+  const targetIdx = state.users.findIndex(u => u.username === username);
+  if (targetIdx !== -1) {
+    if (!state.users[targetIdx].friends) state.users[targetIdx].friends = [];
+    if (!state.users[targetIdx].friends.includes(state.currentUser.username)) {
+      state.users[targetIdx].friends.push(state.currentUser.username);
+    }
+  }
+
+  saveState();
+  renderChatsInterface();
 }
 
 function showChatPlaceholder() {

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pinterest Clone - Вдохновение и идеи</title>
+  <meta name="description" content="Клон Pinterest на чистом HTML, CSS и JavaScript. Ищите идеи декора, рецепты, вдохновение для путешествий и стиль.">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="style.css">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+
+  <!-- Navigation Header -->
+  <header class="app-header">
+    <div class="logo-container" id="logo-home-trigger" style="cursor: pointer;">
+      <div class="logo-icon">
+        <i class="fa-brands fa-pinterest"></i>
+      </div>
+    </div>
+    
+    <button class="nav-btn active" id="nav-home">Главная</button>
+    <button class="nav-btn" id="nav-create">Создать</button>
+    
+    <!-- Search bar with suggestions -->
+    <div class="search-container">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input type="text" class="search-bar" id="search-input" placeholder="Поиск вдохновения (например: дизайн, паста, венеция)..." autocomplete="off">
+      <button class="clear-search-btn" id="clear-search-btn">
+        <i class="fa-solid fa-circle-xmark"></i>
+      </button>
+      
+      <!-- Suggestions dropdown -->
+      <div class="search-suggestions" id="search-suggestions">
+        <h4>Популярные поисковые запросы</h4>
+        <div class="suggestions-grid" id="suggestions-list">
+          <!-- Suggestion pills will be rendered dynamically -->
+        </div>
+      </div>
+    </div>
+    
+    <!-- Header Icons -->
+    <div class="header-actions">
+      <!-- Notifications -->
+      <button class="action-icon-btn" id="notifications-trigger" title="Уведомления">
+        <i class="fa-solid fa-bell"></i>
+        <span class="badge">3</span>
+      </button>
+      
+      <!-- Notifications Popover -->
+      <div class="popover" id="notifications-popover">
+        <div class="popover-header">
+          <h3>Уведомления</h3>
+          <button id="close-notifications" style="font-size: 14px; color: var(--gray-muted);"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="popover-content">
+          <div class="popover-item">
+            <div class="popover-item-avatar">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Мария">
+            </div>
+            <div class="popover-item-text">
+              <div class="popover-item-title">Мария Смирнова</div>
+              <div class="popover-item-desc">Сохранила ваш пин "Минималистичный дизайн" на доску "Идеи".</div>
+            </div>
+          </div>
+          <div class="popover-item">
+            <div class="popover-item-avatar">
+              <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80" alt="Студия">
+            </div>
+            <div class="popover-item-text">
+              <div class="popover-item-title">Студия Уют</div>
+              <div class="popover-item-desc">Опубликовала новый пин в категории "Интерьер".</div>
+            </div>
+          </div>
+          <div class="popover-item">
+            <div class="popover-item-avatar">
+              <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=80" alt="Луиджи">
+            </div>
+            <div class="popover-item-text">
+              <div class="popover-item-title">Шеф Луиджи</div>
+              <div class="popover-item-desc">Подписался на ваши обновления рецептов.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Messages -->
+      <button class="action-icon-btn" id="messages-trigger" title="Сообщения">
+        <i class="fa-solid fa-comment-dots"></i>
+        <span class="badge">1</span>
+      </button>
+      
+      <!-- Messages Popover -->
+      <div class="popover" id="messages-popover">
+        <div class="popover-header">
+          <h3>Входящие</h3>
+          <button id="close-messages" style="font-size: 14px; color: var(--gray-muted);"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="popover-content">
+          <div class="popover-item">
+            <div class="popover-item-avatar">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Мария">
+            </div>
+            <div class="popover-item-text">
+              <div class="popover-item-title">Мария Смирнова</div>
+              <div class="popover-item-desc">Привет! Мне очень понравилась твоя доска...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- User Profile Thumbnail -->
+      <button class="profile-avatar-btn" id="nav-profile-img" title="Профиль">
+        <img src="" id="header-avatar-img" alt="Мой профиль">
+      </button>
+    </div>
+  </header>
+
+  <!-- Categories Filter Pills (Home Feed View Only) -->
+  <nav class="categories-bar" id="categories-bar">
+    <!-- Rendered dynamically from data.js -->
+  </nav>
+
+  <!-- App Main Content Area -->
+  <main class="app-content">
+
+    <!-- VIEW 1: HOME FEED -->
+    <section id="feed-view" class="view-section active">
+      <div class="feed-container">
+        <div class="pins-grid" id="pins-grid-feed">
+          <!-- Pins will be rendered here dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: CREATE PIN -->
+    <section id="create-view" class="view-section">
+      <div class="create-pin-container">
+        <!-- Left Upload Column -->
+        <div class="create-pin-upload-col">
+          <div class="upload-dropzone" id="upload-zone">
+            <i class="fa-solid fa-circle-arrow-up upload-icon"></i>
+            <div class="upload-text">Перетащите сюда изображение или кликните</div>
+            <div class="upload-subtext">Рекомендуется использовать файлы высокого качества JPG/PNG менее 20 МБ</div>
+            
+            <!-- File Input (Hidden) -->
+            <input type="file" id="file-input" accept="image/*" class="hidden">
+            <!-- Image Preview -->
+            <img src="" alt="Preview" class="upload-preview-img" id="preview-img">
+            <div class="preview-overlay" id="preview-change-overlay">Изменить</div>
+          </div>
+          
+          <div class="url-upload-box">
+            <label class="form-label" style="font-size: 13px;">Или укажите прямую ссылку на изображение:</label>
+            <input type="url" id="image-url-input" class="form-input" placeholder="https://example.com/image.jpg">
+          </div>
+        </div>
+        
+        <!-- Right Details Column -->
+        <div class="create-pin-form-col">
+          <div class="submit-pin-row">
+            <button class="profile-btn primary" id="submit-pin-btn">Опубликовать</button>
+          </div>
+          
+          <div class="form-group">
+            <input type="text" id="pin-title" class="create-form-input title-input" placeholder="Добавьте название" required>
+          </div>
+          
+          <div class="form-group">
+            <textarea id="pin-desc" class="create-form-textarea" placeholder="Расскажите всем, о чем ваш пин..."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <input type="text" id="pin-link" class="create-form-input" placeholder="Добавьте ссылку на сайт">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Выбрать доску</label>
+            <select id="pin-board-select" class="create-select">
+              <!-- Dynamically populated boards -->
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Категория</label>
+            <select id="pin-category-select" class="create-select">
+              <option value="Интерьер">Интерьер</option>
+              <option value="Путешествия">Путешествия</option>
+              <option value="Природа">Природа</option>
+              <option value="Архитектура">Архитектура</option>
+              <option value="Еда">Еда</option>
+              <option value="Арт" selected>Арт</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: USER PROFILE -->
+    <section id="profile-view" class="view-section">
+      <div class="profile-container">
+        <!-- Header -->
+        <header class="profile-header">
+          <div class="profile-large-avatar">
+            <img src="" id="profile-avatar-img" alt="Алексей">
+          </div>
+          <h2 class="profile-name" id="profile-display-name">Алексей Иванов</h2>
+          <div class="profile-username" id="profile-username">@creative_mind</div>
+          <p class="profile-bio" id="profile-bio">Любитель эстетики...</p>
+          <div class="profile-stats">
+            <span id="profile-followers-count">1.4k подписчиков</span>
+            <span>•</span>
+            <span id="profile-following-count">892 подписок</span>
+          </div>
+          <div class="profile-actions">
+            <button class="profile-btn" id="profile-share-btn">Поделиться</button>
+            <button class="profile-btn" id="profile-edit-btn">Изменить профиль</button>
+          </div>
+        </header>
+        
+        <!-- Tabs Nav -->
+        <div class="profile-tabs-bar">
+          <button class="profile-tab active" id="tab-saved">Сохраненные</button>
+          <button class="profile-tab" id="tab-created">Созданные</button>
+        </div>
+        
+        <!-- Saved Content (Boards List) -->
+        <div id="profile-saved-section" class="tab-content active" style="width: 100%;">
+          <div style="display: flex; justify-content: flex-end; margin-bottom: 24px;">
+            <button class="profile-btn primary" id="trigger-create-board" style="padding: 10px 16px; font-size: 13px;">
+              <i class="fa-solid fa-plus" style="margin-right: 4px;"></i> Создать доску
+            </button>
+          </div>
+          
+          <div class="boards-grid" id="boards-grid-saved">
+            <!-- Boards rendered dynamically -->
+          </div>
+        </div>
+        
+        <!-- Created Content (Pins Grid) -->
+        <div id="profile-created-section" class="tab-content hidden" style="width: 100%;">
+          <div class="pins-grid" id="pins-grid-created">
+            <!-- Created pins rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Board Details View (Inside Profile) -->
+        <div id="board-details-view" class="tab-content hidden" style="width: 100%;">
+          <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+            <button class="profile-btn" id="board-back-btn" style="padding: 8px 12px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+              <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <div>
+              <h2 id="current-board-title" style="font-size: 28px; font-weight: 700;">Имя доски</h2>
+              <span id="current-board-count" style="font-size: 14px; color: var(--gray-muted);">0 пинов</span>
+            </div>
+          </div>
+          
+          <div class="pins-grid" id="pins-grid-board-pins">
+            <!-- Pins in this board rendered dynamically -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- PIN DETAILS MODAL WINDOW -->
+  <div class="pin-modal-backdrop" id="pin-detail-modal">
+    <!-- Close button outside or floating -->
+    <button class="modal-close-btn" id="modal-close-btn" title="Закрыть">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    
+    <div class="pin-modal-container">
+      
+      <!-- Left Column: Image -->
+      <div class="pin-modal-image-col">
+        <img src="" alt="Pin image" class="pin-modal-image" id="modal-img">
+      </div>
+      
+      <!-- Right Column: Details -->
+      <div class="pin-modal-content-col">
+        <!-- Actions Row -->
+        <div class="modal-actions-bar">
+          <div class="modal-left-actions">
+            <button class="modal-action-icon" id="modal-share-btn" title="Поделиться">
+              <i class="fa-solid fa-share-nodes"></i>
+            </button>
+            <button class="modal-action-icon" id="modal-options-btn" title="Опции">
+              <i class="fa-solid fa-ellipsis"></i>
+            </button>
+          </div>
+          
+          <!-- Board Selection and Save button -->
+          <div class="modal-save-box">
+            <div class="board-select-wrapper">
+              <button class="board-select-trigger" id="modal-board-select-trigger">
+                <span id="modal-selected-board-name">Идеи для дома</span>
+                <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
+              </button>
+              
+              <!-- Dropdown of boards -->
+              <div class="boards-dropdown" id="modal-boards-dropdown">
+                <!-- Dropdown items rendered dynamically -->
+              </div>
+            </div>
+            
+            <button class="modal-save-btn" id="modal-save-btn">Сохранить</button>
+          </div>
+        </div>
+        
+        <!-- Details Info -->
+        <a href="#" target="_blank" class="modal-link" id="modal-website-link">example.com</a>
+        <h1 class="modal-title" id="modal-title">Название пина</h1>
+        <p class="modal-desc" id="modal-description">Описание пина появится здесь...</p>
+        
+        <!-- Author Info -->
+        <div class="modal-author-row">
+          <div class="modal-author-info">
+            <div class="modal-author-avatar">
+              <img src="" id="modal-author-img" alt="Автор">
+            </div>
+            <div class="modal-author-meta">
+              <span class="modal-author-name" id="modal-author-name">Имя Автора</span>
+              <span class="modal-author-stats" id="modal-author-followers">12.5k подписчиков</span>
+            </div>
+          </div>
+          <button class="follow-btn" id="modal-follow-btn">Подписаться</button>
+        </div>
+        
+        <!-- Likes / Reactions -->
+        <div class="modal-reactions-row">
+          <div class="modal-likes-count">
+            <i class="fa-solid fa-heart like-heart-icon"></i>
+            <span id="modal-likes-num">0</span>
+          </div>
+          <button class="like-btn" id="modal-like-btn">
+            <i class="fa-regular fa-heart"></i>
+            <span>Нравится</span>
+          </button>
+        </div>
+        
+        <!-- Comments -->
+        <h3 class="comments-header">Комментарии</h3>
+        <div class="comments-list" id="modal-comments-list">
+          <!-- Comments rendered dynamically -->
+        </div>
+        
+        <!-- Add Comment Input Area -->
+        <div class="add-comment-row">
+          <div class="my-comment-avatar">
+            <img src="" id="modal-my-avatar" alt="Мой аватар">
+          </div>
+          <div class="comment-input-wrapper">
+            <input type="text" class="comment-input" id="modal-comment-input" placeholder="Добавить комментарий...">
+            <button class="comment-submit-btn" id="modal-comment-submit">Отправить</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- CREATE BOARD MODAL DIALOG -->
+  <div class="create-board-modal" id="create-board-modal-dialog">
+    <div class="create-board-box">
+      <h3>Создать доску</h3>
+      <div class="form-group">
+        <label class="form-label" for="new-board-name">Название</label>
+        <input type="text" id="new-board-name" class="form-input" placeholder='Например, "Идеи для ремонта" или "Рецепты"' required>
+      </div>
+      <div class="form-actions">
+        <button class="profile-btn" id="cancel-create-board">Отмена</button>
+        <button class="profile-btn primary" id="confirm-create-board">Создать</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Logic (ES Module) -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>

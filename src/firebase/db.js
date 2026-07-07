@@ -338,12 +338,6 @@ export const fetchPins = async (category = 'all', searchQuery = '') => {
     pins.push({ id: doc.id, ...doc.data() });
   });
 
-  // Seed pins if the database is completely empty
-  if (pins.length === 0 && category === 'all' && !searchQuery) {
-    await seedInitialPins();
-    return fetchPins(category, searchQuery);
-  }
-
   // Perform search query filtering client-side for simple Firebase search
   if (searchQuery) {
     const s = searchQuery.toLowerCase();
@@ -355,18 +349,6 @@ export const fetchPins = async (category = 'all', searchQuery = '') => {
   }
 
   return pins;
-};
-
-// Seed Firestore with original pins
-const seedInitialPins = async () => {
-  const pinsRef = collection(db, 'pins');
-  for (const pin of INITIAL_PINS) {
-    const { id, ...pinWithoutId } = pin;
-    // Add default empty array for likes logic compatibility
-    pinWithoutId.likedBy = [];
-    await addDoc(pinsRef, pinWithoutId);
-  }
-  console.log("Firestore successfully seeded with default pins!");
 };
 
 export const createPin = async (pinData, creatorProfile) => {

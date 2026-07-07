@@ -2424,7 +2424,7 @@ body.density-spacious .pin-card-info {
   background-color: #ff3b30;
   border: 3px solid #000;
   pointer-events: none;
-  z-index: 9999;
+  z-index: 100001;
   transform: translate(-50%, -50%) scale(1);
   transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s;
   box-shadow: 0 4px 0 #000;
@@ -2450,7 +2450,7 @@ body.density-spacious .pin-card-info {
   background-color: rgba(255, 59, 48, 0.4);
   border: 2px solid #000;
   pointer-events: none;
-  z-index: 9998;
+  z-index: 100000;
   transform: translate(-50%, -50%);
   box-shadow: 0 2px 0 #000;
 }

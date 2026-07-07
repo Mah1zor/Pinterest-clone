@@ -275,6 +275,18 @@
 
     <!-- VIEW 1: HOME FEED -->
     <section id="feed-view" class="view-section active">
+      <!-- Feed Sorting Filters -->
+      <div class="feed-sort-container">
+        <div class="feed-sort-tabs">
+          <button class="sort-tab active" data-sort="default">Все идеи</button>
+          <button class="sort-tab" data-sort="popular">
+            <i class="fa-solid fa-fire"></i>Популярные
+          </button>
+          <button class="sort-tab" data-sort="new">
+            <i class="fa-solid fa-clock"></i>Новые
+          </button>
+        </div>
+      </div>
       <div class="feed-container">
         <div class="pins-grid" id="pins-grid-feed">
           <!-- Pins will be rendered here dynamically -->
@@ -591,6 +603,50 @@
       </div>
     </div>
   </div>
+
+  <!-- FLOATING CONTEXT MENU -->
+  <div class="floating-options-menu" id="floating-options-menu">
+    <button class="options-menu-item" id="opt-menu-download">
+      <i class="fa-solid fa-download"></i> Скачать изображение
+    </button>
+    <button class="options-menu-item" id="opt-menu-report" style="color: var(--pinterest-red);">
+      <i class="fa-solid fa-flag"></i> Пожаловаться
+    </button>
+  </div>
+
+  <!-- REPORT PIN MODAL DIALOG -->
+  <div class="create-board-modal" id="report-pin-modal-dialog">
+    <div class="create-board-box">
+      <h3>Пожаловаться на публикацию</h3>
+      <p style="font-size: 13px; color: var(--gray-muted); text-align: center; margin-bottom: 20px; line-height: 1.4;">
+        Ваша жалоба поможет модераторам сделать платформу безопаснее. Публикация будет немедленно скрыта из вашей ленты.
+      </p>
+      
+      <div class="form-group">
+        <label class="form-label" for="report-reason-select">Причина жалобы</label>
+        <select id="report-reason-select" class="create-select" style="width: 100%; height: 40px; border-radius: 10px; border: 1px solid var(--gray-border); padding: 0 12px; background-color: var(--white); color: var(--black); font-family: var(--font-main);">
+          <option value="spam">Спам или реклама</option>
+          <option value="inappropriate">Неуместный контент</option>
+          <option value="copyright">Нарушение авторских прав / плагиат</option>
+          <option value="violence">Сцены насилия или жестокости</option>
+          <option value="other">Другое</option>
+        </select>
+      </div>
+      
+      <div class="form-group" style="margin-top: 14px;">
+        <label class="form-label" for="report-details">Дополнительные детали</label>
+        <textarea id="report-details" class="create-form-textarea" placeholder="Опишите детальнее причину..." style="width: 100%; min-height: 80px; border-radius: 10px; border: 1px solid var(--gray-border); padding: 10px; font-family: var(--font-main); resize: vertical; background-color: var(--white); color: var(--black);"></textarea>
+      </div>
+      
+      <div class="form-actions" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+        <button class="profile-btn" id="cancel-report-btn">Отмена</button>
+        <button class="profile-btn primary" id="confirm-report-btn">Отправить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div class="toast-container" id="toast-container"></div>
 
   <!-- Application Logic (ES Module) -->
   <script type="module" src="app.js"></script>

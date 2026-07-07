@@ -18,6 +18,9 @@ let state = {
   openPin: null, // Currently opened pin in modal
   theme: 'light', // 'light' or 'dark'
   activeChatFriend: null,
+  sortBy: 'default', // 'default', 'popular', 'new'
+  hiddenPinIds: new Set(),
+  activeMenuPinId: null,
   appSettings: {
     gridColumns: 5,
     privateProfile: false,
@@ -91,6 +94,12 @@ function loadUserSpecificData(username) {
     localStorage.setItem(followedKey, JSON.stringify([]));
   }
   state.followedCreators = new Set(JSON.parse(localStorage.getItem(followedKey)));
+
+  const hiddenPinsKey = `pinterest_hidden_pins_${username}`;
+  if (!localStorage.getItem(hiddenPinsKey)) {
+    localStorage.setItem(hiddenPinsKey, JSON.stringify([]));
+  }
+  state.hiddenPinIds = new Set(JSON.parse(localStorage.getItem(hiddenPinsKey)));
 
   const boardsKey = `pinterest_boards_${username}`;
   if (!localStorage.getItem(boardsKey)) {
@@ -500,6 +509,7 @@ function handleLogout() {
   state.currentUser = {};
   state.boards = [];
   state.followedCreators = new Set();
+  state.hiddenPinIds = new Set();
   state.activeChatFriend = null;
   saveState();
   
@@ -645,8 +655,11 @@ function renderPinsGrid(pinsToRender, gridElement) {
         }
         if (clickOverlayButton.classList.contains('share-action-btn')) {
           navigator.clipboard.writeText(window.location.href).then(() => {
-            alert('Ссылка скопирована в буфер обмена!');
+            showToast('Ссылка скопирована в буфер обмена!');
           });
+        }
+        if (clickOverlayButton.classList.contains('menu-action-btn')) {
+          openOptionsMenu(e, pin.id, clickOverlayButton);
         }
         return;
       }
@@ -696,6 +709,9 @@ function toggleSavePinDirect(pinId, buttonEl) {
 function renderFeed() {
   let pinsToRender = [...state.pins];
 
+  // Exclude hidden/reported pins
+  pinsToRender = pinsToRender.filter(pin => !state.hiddenPinIds.has(pin.id));
+
   if (state.activeBoardId) {
     const board = state.boards.find(b => b.id === state.activeBoardId);
     if (board) {
@@ -719,6 +735,18 @@ function renderFeed() {
     );
   }
 
+  // Apply sorting
+  if (state.sortBy === 'popular') {
+    pinsToRender.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+  } else if (state.sortBy === 'new') {
+    pinsToRender.sort((a, b) => {
+      const dateA = new Date(a.date || 0);
+      const dateB = new Date(b.date || 0);
+      return dateB - dateA;
+    });
+  }
+
+  updateSortTabsUI();
   renderPinsGrid(pinsToRender, pinsGridFeed);
 }
 
@@ -1095,7 +1123,7 @@ function saveSettings() {
     renderProfile();
   }
 
-  alert('Настройки приложения успешно сохранены!');
+  showToast('Настройки успешно сохранены!');
 }
 
 // --- Pin Detail Modal Actions ---
@@ -1504,11 +1532,11 @@ function publishPin() {
   const image = uploadedImageBase64 || imageUrlInput.value.trim();
 
   if (!image) {
-    alert('Пожалуйста, выберите изображение или вставьте ссылку на него.');
+    showToast('Пожалуйста, выберите изображение или укажите ссылку');
     return;
   }
   if (!title) {
-    alert('Введите название вашего пина.');
+    showToast('Введите название вашего пина');
     return;
   }
 
@@ -1554,6 +1582,141 @@ function publishPin() {
   switchView('profile');
 }
 
+// --- Toast Notification Helper ---
+function showToast(message) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #2ecc71;"></i> <span>${message}</span>`;
+
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add('fade-out');
+    toast.addEventListener('transitionend', () => {
+      toast.remove();
+    });
+  }, 3000);
+}
+
+// --- Floating Options Menu Logic ---
+function openOptionsMenu(e, pinId, triggerEl) {
+  e.stopPropagation();
+  state.activeMenuPinId = pinId;
+
+  const menu = document.getElementById('floating-options-menu');
+  if (!menu) return;
+
+  menu.classList.add('active');
+  const rect = triggerEl.getBoundingClientRect();
+  const menuWidth = menu.offsetWidth || 190;
+  const menuHeight = menu.offsetHeight || 100;
+
+  let top = rect.bottom + 8;
+  let left = rect.left + rect.width - menuWidth;
+
+  // Boundary check
+  if (left < 16) left = 16;
+  if (left + menuWidth > window.innerWidth - 16) {
+    left = window.innerWidth - menuWidth - 16;
+  }
+  if (top + menuHeight > window.innerHeight - 16) {
+    top = rect.top - menuHeight - 8;
+  }
+
+  menu.style.top = `${top}px`;
+  menu.style.left = `${left}px`;
+}
+
+function closeOptionsMenu() {
+  const menu = document.getElementById('floating-options-menu');
+  if (menu) menu.classList.remove('active');
+}
+
+// --- Download Pin Image ---
+function handleDownloadActivePin() {
+  const pinId = state.activeMenuPinId;
+  const pin = state.pins.find(p => p.id === pinId);
+  if (!pin) return;
+
+  const a = document.createElement('a');
+  a.href = pin.image;
+  a.download = `${pin.title || 'pinterest-pin'}.jpg`;
+  a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  closeOptionsMenu();
+  showToast('Загрузка изображения началась!');
+}
+
+// --- Report Publication Dialog ---
+function openReportModal() {
+  closeOptionsMenu();
+  const reportModal = document.getElementById('report-pin-modal-dialog');
+  if (reportModal) {
+    reportModal.classList.add('active');
+    document.getElementById('report-reason-select').value = 'spam';
+    document.getElementById('report-details').value = '';
+  }
+}
+
+function closeReportModal() {
+  const reportModal = document.getElementById('report-pin-modal-dialog');
+  if (reportModal) {
+    reportModal.classList.remove('active');
+  }
+}
+
+function submitReport() {
+  const pinId = state.activeMenuPinId;
+  const pin = state.pins.find(p => p.id === pinId);
+  if (!pin) return;
+
+  const reason = document.getElementById('report-reason-select').value;
+  const details = document.getElementById('report-details').value.trim();
+
+  // Save report to local storage
+  const reportsKey = 'pinterest_reports';
+  const reports = JSON.parse(localStorage.getItem(reportsKey) || '[]');
+  reports.push({
+    id: `report-${Date.now()}`,
+    pinId: pin.id,
+    pinTitle: pin.title,
+    reason: reason,
+    details: details,
+    reporter: state.currentUser.username,
+    date: new Date().toISOString()
+  });
+  localStorage.setItem(reportsKey, JSON.stringify(reports));
+
+  // Hide pin for this user
+  const hiddenPinsKey = `pinterest_hidden_pins_${state.currentUser.username}`;
+  const hiddenPins = JSON.parse(localStorage.getItem(hiddenPinsKey) || '[]');
+  hiddenPins.push(pin.id);
+  localStorage.setItem(hiddenPinsKey, JSON.stringify(hiddenPins));
+
+  state.hiddenPinIds.add(pin.id);
+
+  closeReportModal();
+  closePinDetails();
+  showToast('Жалоба отправлена. Публикация скрыта.');
+  renderFeed();
+}
+
+// --- Sync UI for sort tabs ---
+function updateSortTabsUI() {
+  document.querySelectorAll('.sort-tab').forEach(tab => {
+    if (tab.getAttribute('data-sort') === state.sortBy) {
+      tab.classList.add('active');
+    } else {
+      tab.classList.remove('active');
+    }
+  });
+}
+
 // --- Event Listeners Binding ---
 function setupEventListeners() {
   // Top header nav bindings
@@ -1562,9 +1725,11 @@ function setupEventListeners() {
     state.activeBoardId = null;
     state.searchQuery = '';
     searchInput.value = '';
+    state.sortBy = 'default';
     clearSearchBtn.classList.remove('visible');
     renderSidebarCategories();
     renderSidebarBoards();
+    renderFeed();
     switchView('feed');
   });
 
@@ -1581,9 +1746,11 @@ function setupEventListeners() {
     state.activeBoardId = null;
     state.searchQuery = '';
     searchInput.value = '';
+    state.sortBy = 'default';
     clearSearchBtn.classList.remove('visible');
     renderSidebarCategories();
     renderSidebarBoards();
+    renderFeed();
     switchView('feed');
   });
 
@@ -1604,9 +1771,11 @@ function setupEventListeners() {
     state.activeBoardId = null;
     state.searchQuery = '';
     searchInput.value = '';
+    state.sortBy = 'default';
     clearSearchBtn.classList.remove('visible');
     renderSidebarCategories();
     renderSidebarBoards();
+    renderFeed();
     switchView('feed');
     closeRightSidebar();
   });
@@ -1708,12 +1877,14 @@ function setupEventListeners() {
 
   document.getElementById('modal-share-btn').addEventListener('click', () => {
     navigator.clipboard.writeText(modalImg.src).then(() => {
-      alert('Ссылка на картинку скопирована в буфер обмена!');
+      showToast('Ссылка на изображение скопирована!');
     });
   });
 
-  document.getElementById('modal-options-btn').addEventListener('click', () => {
-    alert('Опции пина: Нажата кнопка жалобы/скачивания.');
+  document.getElementById('modal-options-btn').addEventListener('click', (e) => {
+    if (state.openPin) {
+      openOptionsMenu(e, state.openPin.id, e.currentTarget);
+    }
   });
 
   modalCommentInput.addEventListener('input', () => {
@@ -1801,7 +1972,36 @@ function setupEventListeners() {
   submitPinBtn.addEventListener('click', publishPin);
 
   document.getElementById('profile-share-btn').addEventListener('click', () => {
-    alert(`Ссылка на профиль @${state.currentUser.username} скопирована в буфер.`);
+    showToast('Ссылка на профиль скопирована!');
+  });
+
+  // Sorting tabs
+  document.querySelectorAll('.sort-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      state.sortBy = tab.getAttribute('data-sort');
+      renderFeed();
+    });
+  });
+
+  // Options menu triggers
+  document.getElementById('opt-menu-download').addEventListener('click', handleDownloadActivePin);
+  document.getElementById('opt-menu-report').addEventListener('click', openReportModal);
+
+  // Close options menu on scroll or click away
+  document.addEventListener('scroll', closeOptionsMenu, { passive: true });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#floating-options-menu') && !e.target.closest('.menu-action-btn') && !e.target.closest('#modal-options-btn')) {
+      closeOptionsMenu();
+    }
+  });
+
+  // Report dialog actions
+  document.getElementById('cancel-report-btn').addEventListener('click', closeReportModal);
+  document.getElementById('confirm-report-btn').addEventListener('click', submitReport);
+  document.getElementById('report-pin-modal-dialog').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('report-pin-modal-dialog')) {
+      closeReportModal();
+    }
   });
 }
 

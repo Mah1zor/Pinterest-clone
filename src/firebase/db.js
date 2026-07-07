@@ -116,7 +116,7 @@ export const signInUser = async (emailOrUsername, password) => {
       localStorage.setItem('pinterest_mock_user', JSON.stringify(adminUser));
       return adminUser;
     } else {
-      throw new Error('Мы живем в сумрачном мире');
+      throw new Error('Ты не один из наших');
     }
   }
 

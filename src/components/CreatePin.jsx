@@ -72,6 +72,17 @@ export default function CreatePin({
     }
   };
 
+  const handleImageUrlBlur = () => {
+    let val = imageUrl.trim();
+    if (!val) return;
+    if (val.startsWith('//')) {
+      val = 'https:' + val;
+    } else if (!/^https?:\/\//i.test(val)) {
+      val = 'https://' + val;
+    }
+    setImageUrl(val);
+  };
+
   return (
     <div style={{ maxWidth: '850px', margin: '40px auto', padding: '0 20px' }}>
       <div style={{ backgroundColor: 'var(--white)', borderRadius: '32px', padding: '40px', boxShadow: '0 8px 30px rgba(0,0,0,0.06)' }}>
@@ -110,11 +121,12 @@ export default function CreatePin({
             <div className="auth-group">
               <label className="auth-label">Ссылка на изображение (URL)*</label>
               <input
-                type="url"
+                type="text"
                 className="auth-input"
                 placeholder="Вставьте ссылку на картинку (например, с Unsplash)"
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
+                onBlur={handleImageUrlBlur}
                 style={{ margin: 0 }}
                 required
               />

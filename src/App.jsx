@@ -9,6 +9,7 @@ import CreatePin from './components/CreatePin';
 import Profile from './components/Profile';
 import Chat from './components/Chat';
 import AdminPanel from './components/AdminPanel';
+import CustomCursor from './components/CustomCursor';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db, isConfigured } from './firebase/config';
 
@@ -519,6 +520,7 @@ export default function App() {
           </div>
         ))}
       </div>
+      <CustomCursor />
     </div>
   );
 }

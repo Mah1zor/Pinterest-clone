@@ -2412,3 +2412,52 @@ body.density-spacious .pin-card-info {
     opacity: 1;
   }
 }
+
+/* Custom Cartoon Cursor Styles */
+.custom-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: #ff3b30;
+  border: 3px solid #000;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%) scale(1);
+  transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s;
+  box-shadow: 0 4px 0 #000;
+}
+
+.custom-cursor.hovered {
+  transform: translate(-50%, -50%) scale(1.5) rotate(15deg);
+  background-color: #ffcc00;
+}
+
+.custom-cursor.clicked {
+  transform: translate(-50%, -50%) scale(0.8);
+  background-color: #4cd964;
+}
+
+.custom-cursor-trail {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: rgba(255, 59, 48, 0.4);
+  border: 2px solid #000;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 2px 0 #000;
+}
+
+/* Hide default cursor on desktop */
+@media (min-width: 1025px) {
+  body, button, a, input, select, textarea, [role="button"], .pin-card, .sort-tab {
+    cursor: none !important;
+  }
+}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { signInUser, signUpUser } from '../firebase/db';
+import { signInUser, signUpUser, signInWithGoogle } from '../firebase/db';
 import { LOCALES } from '../locales';
 
 export default function Auth({ lang, onAuthSuccess }) {
@@ -39,6 +39,20 @@ export default function Auth({ lang, onAuthSuccess }) {
     } catch (err) {
       console.error(err);
       setError(err.message || 'Authentication failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      const user = await signInWithGoogle();
+      onAuthSuccess(user);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || 'Google Sign-in failed.');
     } finally {
       setLoading(false);
     }
@@ -117,6 +131,29 @@ export default function Auth({ lang, onAuthSuccess }) {
             {loading ? 'Загрузка...' : isLogin ? t.loginSubmit : t.regSubmit}
           </button>
         </form>
+
+        <div style={{ display: 'flex', alignItems: 'center', margin: '16px 0', width: '100%' }}>
+          <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--gray-border)' }}></div>
+          <span style={{ padding: '0 10px', fontSize: '12px', color: 'var(--gray-text)', fontWeight: 600 }}>ИЛИ</span>
+          <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--gray-border)' }}></div>
+        </div>
+
+        <button 
+          type="button"
+          onClick={handleGoogleSignIn} 
+          disabled={loading}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+            width: '100%', height: 44, borderRadius: 24, border: '1px solid var(--gray-border)',
+            backgroundColor: 'var(--white)', color: 'var(--black)', fontWeight: 600, fontSize: 14,
+            cursor: 'pointer', transition: 'background-color 0.2s', margin: '0 auto 16px auto'
+          }}
+          onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--gray-light)'}
+          onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--white)'}
+        >
+          <i className="fa-brands fa-google" style={{ color: '#4285F4', fontSize: 16 }}></i>
+          Войти через Google
+        </button>
 
         <div className="auth-toggle">
           <span>{isLogin ? 'Впервые на Pinterest?' : 'Уже есть аккаунт?'}</span>

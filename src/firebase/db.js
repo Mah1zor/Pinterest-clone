@@ -4,7 +4,9 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  updateProfile
+  updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup
 } from 'firebase/auth';
 import {
   doc,
@@ -136,6 +138,73 @@ export const signInUser = async (emailOrUsername, password) => {
   const userCredential = await signInWithEmailAndPassword(auth, targetEmail, password);
   const user = userCredential.user;
   return await fetchUserProfile(user.uid);
+};
+
+export const signInWithGoogle = async () => {
+  if (!isConfigured) {
+    // Mock Google Sign-in
+    const mockUser = {
+      uid: 'mock-google-' + Date.now(),
+      email: 'google_user@example.com',
+      name: 'Google User',
+      username: 'google_user',
+      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+      bio: 'Я вошел через Google!',
+      followersCount: 0,
+      followingCount: 0,
+      savedPins: [],
+      createdPins: [],
+      friends: []
+    };
+    localStorage.setItem('pinterest_mock_user', JSON.stringify(mockUser));
+    return mockUser;
+  }
+
+  // Real Firebase Google Sign-in
+  const provider = new GoogleAuthProvider();
+  const result = await signInWithPopup(auth, provider);
+  const user = result.user;
+
+  // Check if profile document exists in Firestore
+  const docRef = doc(db, 'users', user.uid);
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists()) {
+    return docSnap.data();
+  } else {
+    // Generate a unique username based on the email prefix
+    let baseUsername = user.email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (!baseUsername) baseUsername = 'user';
+    
+    // Check uniqueness
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('username', '==', baseUsername));
+    const querySnapshot = await getDocs(q);
+    
+    let finalUsername = baseUsername;
+    if (!querySnapshot.empty) {
+      // Append random number to make it unique
+      finalUsername = baseUsername + Math.floor(Math.random() * 10000);
+    }
+
+    const newUserProfile = {
+      uid: user.uid,
+      email: user.email,
+      name: user.displayName || 'Google User',
+      username: finalUsername,
+      avatar: user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+      bio: '',
+      followersCount: 0,
+      followingCount: 0,
+      savedPins: [],
+      createdPins: [],
+      friends: [],
+      createdAt: new Date().toISOString()
+    };
+
+    await setDoc(docRef, newUserProfile);
+    return newUserProfile;
+  }
 };
 
 export const logoutUser = async () => {

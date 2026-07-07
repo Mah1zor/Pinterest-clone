@@ -9,16 +9,25 @@ export default function Header({
   searchQuery,
   setSearchQuery,
   currentUser,
-  onToggleSidebar
+  onToggleSidebar,
+  notificationsList = [],
+  unreadCount = 0,
+  onClearUnread,
+  onClearAllNotifications
 }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const dropdownRef = useRef(null);
+  const notifDropdownRef = useRef(null);
   const t = LOCALES[lang] || LOCALES.ru;
 
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowSuggestions(false);
+      }
+      if (notifDropdownRef.current && !notifDropdownRef.current.contains(event.target)) {
+        setShowNotifDropdown(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -144,6 +153,83 @@ export default function Header({
         >
           <i className="fa-solid fa-comment-dots"></i>
         </button>
+
+        {/* Notifications Bell Dropdown */}
+        <div style={{ position: 'relative' }} ref={notifDropdownRef}>
+          <button
+            className={`action-icon-btn ${showNotifDropdown ? 'active' : ''}`}
+            title="Уведомления"
+            style={{ marginRight: 8, position: 'relative' }}
+            onClick={() => {
+              setShowNotifDropdown(!showNotifDropdown);
+              if (onClearUnread) onClearUnread();
+            }}
+          >
+            <i className="fa-solid fa-bell"></i>
+            {unreadCount > 0 && (
+              <span style={{
+                position: 'absolute', top: -2, right: -2, backgroundColor: '#e60023',
+                color: '#fff', fontSize: 10, fontWeight: 700, padding: '2px 6px',
+                borderRadius: '50%', border: '2px solid var(--white)'
+              }}>
+                {unreadCount}
+              </span>
+            )}
+          </button>
+
+          {showNotifDropdown && (
+            <div style={{
+              position: 'absolute', right: 0, top: '48px', width: '320px',
+              backgroundColor: 'var(--white)', borderRadius: '16px', boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+              border: '1px solid var(--gray-border)', zIndex: 1000, padding: '16px', maxHeight: '380px', overflowY: 'auto'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--black)' }}>Уведомления</h4>
+                {notificationsList.length > 0 && (
+                  <button
+                    onClick={() => {
+                      if (onClearAllNotifications) onClearAllNotifications();
+                    }}
+                    style={{ border: 'none', background: 'none', color: 'var(--gray-text)', fontSize: 11, cursor: 'pointer' }}
+                  >
+                    Очистить все
+                  </button>
+                )}
+              </div>
+
+              {notificationsList.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--gray-text)', fontSize: 13 }}>
+                  Нет новых уведомлений
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {notificationsList.map(n => (
+                    <div
+                      key={n.id}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 10, padding: '8px',
+                        borderRadius: '8px', cursor: 'pointer', transition: 'background-color 0.2s',
+                        textAlign: 'left'
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--gray-light)'}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      onClick={() => {
+                        setShowNotifDropdown(false);
+                        setView(n.type === 'message' ? 'chat' : 'profile');
+                      }}
+                    >
+                      <img src={n.avatar} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', color: 'var(--black)' }}>{n.title}</div>
+                        <div style={{ fontSize: 11, color: 'var(--gray-text)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{n.message}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* User Profile Avatar */}
         <button

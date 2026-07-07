@@ -10,7 +10,7 @@ export const CURRENT_USER = {
   followingCount: '892',
   savedPins: ['pin-1', 'pin-2', 'pin-4', 'pin-7', 'pin-8', 'pin-10', 'pin-11', 'pin-12', 'pin-13', 'pin-14', 'pin-15'],
   createdPins: [],
-  friends: ['wanderlust_travel']
+  friends: ['admin']
 };
 
 export const MOCK_USERS = [

@@ -22,6 +22,8 @@ export default function App() {
   const [view, setView] = useState('feed'); // 'feed', 'create', 'profile', 'chat'
   const [initialActiveChatFriend, setInitialActiveChatFriend] = useState(null);
   const [notifications, setNotifications] = useState([]);
+  const [notificationHistory, setNotificationHistory] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const handleSetView = (newView) => {
     setView(newView);
@@ -99,11 +101,22 @@ export default function App() {
     };
     
     setNotifications(prev => [newNotif, ...prev]);
+    setNotificationHistory(prev => [newNotif, ...prev]);
+    setUnreadCount(prev => prev + 1);
     
     // Auto remove after 5 seconds
     setTimeout(() => {
       setNotifications(prev => prev.filter(n => n.id !== id));
     }, 5000);
+  };
+
+  const handleClearUnreadCount = () => {
+    setUnreadCount(0);
+  };
+
+  const handleClearAllNotifications = () => {
+    setNotificationHistory([]);
+    setUnreadCount(0);
   };
 
   // Real-time listener for incoming chat messages
@@ -322,6 +335,10 @@ export default function App() {
         setSearchQuery={setSearchQuery}
         currentUser={currentUser}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        notificationsList={notificationHistory}
+        unreadCount={unreadCount}
+        onClearUnread={handleClearUnreadCount}
+        onClearAllNotifications={handleClearAllNotifications}
       />
 
       {/* Main workspace (Sidebar + Screen Content) */}

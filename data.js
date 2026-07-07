@@ -24,19 +24,7 @@ export const MOCK_USERS = [
     followingCount: '892',
     savedPins: ['pin-1', 'pin-2', 'pin-4', 'pin-7', 'pin-8', 'pin-10', 'pin-11', 'pin-12', 'pin-13', 'pin-14', 'pin-15'],
     createdPins: [],
-    friends: ['wanderlust_travel']
-  },
-  {
-    username: 'wanderlust_travel',
-    password: '123',
-    name: 'Мария Смирнова',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    bio: 'Трэвел-блогер и фотограф. Делюсь секретными локациями со всего земного шара. Ловлю рассветы.',
-    followersCount: '25.8k',
-    followingCount: '412',
-    savedPins: ['pin-2', 'pin-3', 'pin-8', 'pin-9', 'pin-12'],
-    createdPins: ['pin-2', 'pin-8', 'pin-12'],
-    friends: ['creative_mind']
+    friends: []
   }
 ];
 

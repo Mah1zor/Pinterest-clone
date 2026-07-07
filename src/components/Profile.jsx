@@ -18,7 +18,13 @@ export default function Profile({
 }) {
   const [activeTab, setActiveTab] = useState('saved'); // 'saved', 'created', 'liked', 'boards'
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [selectedBoardPins, setSelectedBoardPins] = useState(null); // When viewing a specific board's pins
+
+  // Form states for profile settings
+  const [editName, setEditName] = useState(currentUser?.name || '');
+  const [editAvatar, setEditAvatar] = useState(currentUser?.avatar || '');
+  const [editBio, setEditBio] = useState(currentUser?.bio || '');
 
   // Form states for general settings
   const [editGridColumns, setEditGridColumns] = useState(appSettings?.gridColumns || 5);
@@ -42,6 +48,24 @@ export default function Profile({
     setLang(editLang);
     setIsEditing(false);
     alert('Настройки приложения успешно сохранены!');
+  };
+
+  const handleProfileSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const { updateUserProfile } = await import('../firebase/db');
+      const updatedUser = await updateUserProfile(currentUser.uid, {
+        name: editName.trim(),
+        avatar: editAvatar.trim(),
+        bio: editBio.trim()
+      });
+      onUpdateUser(updatedUser);
+      setIsEditingProfile(false);
+      alert('Профиль успешно обновлен!');
+    } catch (err) {
+      console.error(err);
+      alert('Ошибка при обновлении профиля: ' + err.message);
+    }
   };
 
   // Filter pins based on active tab
@@ -85,25 +109,43 @@ export default function Profile({
           <span>{currentUser?.followingCount || 0} подписок</span>
         </div>
 
-        <button
-          onClick={() => {
-            setEditGridColumns(appSettings?.gridColumns || 5);
-            setEditPrivateProfile(appSettings?.privateProfile || false);
-            setEditOnlineStatus(appSettings?.onlineStatus || false);
-            setEditSafeSearch(appSettings?.safeSearch || false);
-            setEditSoundEffects(appSettings?.soundEffects || false);
-            setEditTheme(theme || 'light');
-            setEditLang(lang || 'ru');
-            setIsEditing(true);
-          }}
-          style={{
-            padding: '10px 18px', borderRadius: 24, border: 'none',
-            backgroundColor: 'var(--gray-light)', color: 'var(--black)',
-            fontWeight: 700, fontSize: 14, cursor: 'pointer', transition: 'background-color 0.2s'
-          }}
-        >
-          Настройки приложения
-        </button>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button
+            onClick={() => {
+              setEditName(currentUser?.name || '');
+              setEditAvatar(currentUser?.avatar || '');
+              setEditBio(currentUser?.bio || '');
+              setIsEditingProfile(true);
+            }}
+            style={{
+              padding: '10px 18px', borderRadius: 24, border: 'none',
+              backgroundColor: 'rgba(230, 0, 35, 0.1)', color: '#e60023',
+              fontWeight: 700, fontSize: 14, cursor: 'pointer', transition: 'background-color 0.2s'
+            }}
+          >
+            Редактировать профиль
+          </button>
+          
+          <button
+            onClick={() => {
+              setEditGridColumns(appSettings?.gridColumns || 5);
+              setEditPrivateProfile(appSettings?.privateProfile || false);
+              setEditOnlineStatus(appSettings?.onlineStatus || false);
+              setEditSafeSearch(appSettings?.safeSearch || false);
+              setEditSoundEffects(appSettings?.soundEffects || false);
+              setEditTheme(theme || 'light');
+              setEditLang(lang || 'ru');
+              setIsEditing(true);
+            }}
+            style={{
+              padding: '10px 18px', borderRadius: 24, border: 'none',
+              backgroundColor: 'var(--gray-light)', color: 'var(--black)',
+              fontWeight: 700, fontSize: 14, cursor: 'pointer', transition: 'background-color 0.2s'
+            }}
+          >
+            Настройки приложения
+          </button>
+        </div>
       </div>
 
       {/* Editing Form Overlay */}
@@ -197,6 +239,56 @@ export default function Profile({
                   Сохранить
                 </button>
                 <button type="button" className="nav-btn" onClick={() => setIsEditing(false)} style={{ flex: 1 }}>
+                  Отмена
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isEditingProfile && (
+        <div className="modal-overlay active" onClick={() => setIsEditingProfile(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
+          <div className="auth-card" onClick={(e) => e.stopPropagation()} style={{ width: '450px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <h2 style={{ marginBottom: 20 }}>Настройки профиля</h2>
+            <form onSubmit={handleProfileSubmit} className="auth-form">
+              <div className="auth-group">
+                <label className="auth-label">Ссылка на аватар (URL)</label>
+                <input
+                  type="text"
+                  className="auth-input"
+                  value={editAvatar}
+                  onChange={(e) => setEditAvatar(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <div className="auth-group">
+                <label className="auth-label">Публичное имя</label>
+                <input
+                  type="text"
+                  className="auth-input"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="auth-group">
+                <label className="auth-label">О себе (Bio)</label>
+                <textarea
+                  className="auth-input"
+                  value={editBio}
+                  onChange={(e) => setEditBio(e.target.value)}
+                  style={{ height: '80px', resize: 'vertical', padding: '10px', width: '100%', borderRadius: '10px', border: '1px solid var(--gray-border)', backgroundColor: 'var(--white)', color: 'var(--black)' }}
+                />
+              </div>
+              
+              <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
+                <button type="submit" className="auth-submit-btn" style={{ flex: 1, margin: 0 }}>
+                  Сохранить
+                </button>
+                <button type="button" className="nav-btn" onClick={() => setIsEditingProfile(false)} style={{ flex: 1 }}>
                   Отмена
                 </button>
               </div>

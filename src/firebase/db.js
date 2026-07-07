@@ -135,26 +135,12 @@ export const signInUser = async (emailOrUsername, password) => {
   }
 
   if (!isConfigured) {
-    // Mock Signin
-    const mockUser = MOCK_USERS.find(u => u.username === emailOrUsername) || JSON.parse(localStorage.getItem('pinterest_mock_user'));
-    if (mockUser && (password === '123' || mockUser.password === password)) {
-      const formatted = {
-        uid: mockUser.uid || 'mock-creative_mind',
-        email: mockUser.username + '@example.com',
-        name: mockUser.name,
-        username: mockUser.username,
-        avatar: mockUser.avatar,
-        bio: mockUser.bio,
-        followersCount: mockUser.followersCount,
-        followingCount: mockUser.followingCount,
-        savedPins: mockUser.savedPins || [],
-        createdPins: mockUser.createdPins || [],
-        friends: mockUser.friends || []
-      };
-      localStorage.setItem('pinterest_mock_user', JSON.stringify(formatted));
-      return formatted;
+    // Mock Signin (only allows registered local mock accounts)
+    const mockUser = JSON.parse(localStorage.getItem('pinterest_mock_user'));
+    if (mockUser && mockUser.username === emailOrUsername && (password === '123' || mockUser.password === password)) {
+      return mockUser;
     }
-    throw new Error('Неверное имя пользователя или пароль. Попробуйте creative_mind / 123');
+    throw new Error('Неверное имя пользователя или пароль.');
   }
 
   // Real Firebase Signin

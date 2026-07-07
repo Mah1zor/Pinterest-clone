@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { updateUserProfile } from '../firebase/db';
 import PinGrid from './PinGrid';
 
 export default function Profile({
@@ -9,29 +8,40 @@ export default function Profile({
   onUpdateUser,
   onOpenPinDetails,
   onLikePin,
-  onSavePin
+  onSavePin,
+  appSettings,
+  setAppSettings,
+  theme,
+  setTheme,
+  lang,
+  setLang
 }) {
   const [activeTab, setActiveTab] = useState('saved'); // 'saved', 'created', 'liked', 'boards'
   const [isEditing, setIsEditing] = useState(false);
-  const [editName, setEditName] = useState(currentUser?.name || '');
-  const [editBio, setEditBio] = useState(currentUser?.bio || '');
-  const [editAvatar, setEditAvatar] = useState(currentUser?.avatar || '');
   const [selectedBoardPins, setSelectedBoardPins] = useState(null); // When viewing a specific board's pins
 
-  const handleEditSubmit = async (e) => {
+  // Form states for general settings
+  const [editGridColumns, setEditGridColumns] = useState(appSettings?.gridColumns || 5);
+  const [editPrivateProfile, setEditPrivateProfile] = useState(appSettings?.privateProfile || false);
+  const [editOnlineStatus, setEditOnlineStatus] = useState(appSettings?.onlineStatus || false);
+  const [editSafeSearch, setEditSafeSearch] = useState(appSettings?.safeSearch || false);
+  const [editSoundEffects, setEditSoundEffects] = useState(appSettings?.soundEffects || false);
+  const [editTheme, setEditTheme] = useState(theme || 'light');
+  const [editLang, setEditLang] = useState(lang || 'ru');
+
+  const handleEditSubmit = (e) => {
     e.preventDefault();
-    try {
-      const updated = await updateUserProfile(currentUser.uid, {
-        name: editName.trim(),
-        bio: editBio.trim(),
-        avatar: editAvatar.trim()
-      });
-      onUpdateUser(updated);
-      setIsEditing(false);
-    } catch (err) {
-      console.error(err);
-      alert('Ошибка при обновлении профиля: ' + err.message);
-    }
+    setAppSettings({
+      gridColumns: parseInt(editGridColumns, 10),
+      privateProfile: editPrivateProfile,
+      onlineStatus: editOnlineStatus,
+      safeSearch: editSafeSearch,
+      soundEffects: editSoundEffects
+    });
+    setTheme(editTheme);
+    setLang(editLang);
+    setIsEditing(false);
+    alert('Настройки приложения успешно сохранены!');
   };
 
   // Filter pins based on active tab
@@ -77,9 +87,13 @@ export default function Profile({
 
         <button
           onClick={() => {
-            setEditName(currentUser.name);
-            setEditBio(currentUser.bio || '');
-            setEditAvatar(currentUser.avatar);
+            setEditGridColumns(appSettings?.gridColumns || 5);
+            setEditPrivateProfile(appSettings?.privateProfile || false);
+            setEditOnlineStatus(appSettings?.onlineStatus || false);
+            setEditSafeSearch(appSettings?.safeSearch || false);
+            setEditSoundEffects(appSettings?.soundEffects || false);
+            setEditTheme(theme || 'light');
+            setEditLang(lang || 'ru');
             setIsEditing(true);
           }}
           style={{
@@ -88,44 +102,94 @@ export default function Profile({
             fontWeight: 700, fontSize: 14, cursor: 'pointer', transition: 'background-color 0.2s'
           }}
         >
-          Редактировать профиль
+          Настройки приложения
         </button>
       </div>
 
       {/* Editing Form Overlay */}
       {isEditing && (
         <div className="modal-overlay active" onClick={() => setIsEditing(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="auth-card" onClick={(e) => e.stopPropagation()} style={{ width: '450px' }}>
-            <h2 style={{ marginBottom: 20 }}>Настройки профиля</h2>
+          <div className="auth-card" onClick={(e) => e.stopPropagation()} style={{ width: '450px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <h2 style={{ marginBottom: 20 }}>Настройки приложения</h2>
             <form onSubmit={handleEditSubmit} className="auth-form">
               <div className="auth-group">
-                <label className="auth-label">Ссылка на аватар (URL)</label>
-                <input
-                  type="url"
+                <label className="auth-label">Плотность сетки пинов</label>
+                <select
                   className="auth-input"
-                  value={editAvatar}
-                  onChange={(e) => setEditAvatar(e.target.value)}
-                  required
+                  value={editGridColumns}
+                  onChange={(e) => setEditGridColumns(parseInt(e.target.value, 10))}
+                  style={{ width: '100%', height: '40px', borderRadius: '10px', backgroundColor: 'var(--white)', color: 'var(--black)', border: '1px solid var(--gray-border)' }}
+                >
+                  <option value={3}>Крупная (3 колонки)</option>
+                  <option value={5}>Стандартная (5 колонок)</option>
+                  <option value={7}>Компактная (7 колонок)</option>
+                </select>
+              </div>
+
+              <div className="auth-group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, margin: '14px 0' }}>
+                <label className="auth-label" style={{ margin: 0 }}>Приватный профиль</label>
+                <input
+                  type="checkbox"
+                  checked={editPrivateProfile}
+                  onChange={(e) => setEditPrivateProfile(e.target.checked)}
+                  style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                 />
               </div>
-              <div className="auth-group">
-                <label className="auth-label">Публичное имя</label>
+
+              <div className="auth-group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, margin: '14px 0' }}>
+                <label className="auth-label" style={{ margin: 0 }}>Статус "В сети"</label>
                 <input
-                  type="text"
-                  className="auth-input"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  required
+                  type="checkbox"
+                  checked={editOnlineStatus}
+                  onChange={(e) => setEditOnlineStatus(e.target.checked)}
+                  style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                 />
               </div>
-              <div className="auth-group">
-                <label className="auth-label">О себе (Bio)</label>
-                <textarea
-                  className="auth-input"
-                  value={editBio}
-                  onChange={(e) => setEditBio(e.target.value)}
-                  style={{ minHeight: '60px', resize: 'vertical', fontFamily: 'inherit' }}
+
+              <div className="auth-group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, margin: '14px 0' }}>
+                <label className="auth-label" style={{ margin: 0 }}>Безопасный поиск</label>
+                <input
+                  type="checkbox"
+                  checked={editSafeSearch}
+                  onChange={(e) => setEditSafeSearch(e.target.checked)}
+                  style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                 />
+              </div>
+
+              <div className="auth-group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, margin: '14px 0' }}>
+                <label className="auth-label" style={{ margin: 0 }}>Звуки сообщений</label>
+                <input
+                  type="checkbox"
+                  checked={editSoundEffects}
+                  onChange={(e) => setEditSoundEffects(e.target.checked)}
+                  style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+                />
+              </div>
+
+              <div className="auth-group">
+                <label className="auth-label">Тема оформления</label>
+                <select
+                  className="auth-input"
+                  value={editTheme}
+                  onChange={(e) => setEditTheme(e.target.value)}
+                  style={{ width: '100%', height: '40px', borderRadius: '10px', backgroundColor: 'var(--white)', color: 'var(--black)', border: '1px solid var(--gray-border)' }}
+                >
+                  <option value="light">Светлая</option>
+                  <option value="dark">Темная</option>
+                </select>
+              </div>
+
+              <div className="auth-group" style={{ marginBottom: '20px' }}>
+                <label className="auth-label">Язык интерфейса</label>
+                <select
+                  className="auth-input"
+                  value={editLang}
+                  onChange={(e) => setEditLang(e.target.value)}
+                  style={{ width: '100%', height: '40px', borderRadius: '10px', backgroundColor: 'var(--white)', color: 'var(--black)', border: '1px solid var(--gray-border)' }}
+                >
+                  <option value="ru">Русский</option>
+                  <option value="en">English</option>
+                </select>
               </div>
               
               <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>

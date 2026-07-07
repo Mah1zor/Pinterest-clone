@@ -629,3 +629,23 @@ export const sendMessage = async (chatId, senderId, text) => {
   });
   return msg;
 };
+
+export const toggleFriend = async (currentUserUid, friendUid, isFriend) => {
+  if (!isConfigured) {
+    const curUser = JSON.parse(localStorage.getItem('pinterest_mock_user')) || { uid: currentUserUid, friends: [] };
+    curUser.friends = curUser.friends || [];
+    if (isFriend) {
+      if (!curUser.friends.includes(friendUid)) curUser.friends.push(friendUid);
+    } else {
+      curUser.friends = curUser.friends.filter(uid => uid !== friendUid);
+    }
+    localStorage.setItem('pinterest_mock_user', JSON.stringify(curUser));
+    return curUser;
+  }
+
+  const userRef = doc(db, 'users', currentUserUid);
+  await updateDoc(userRef, {
+    friends: isFriend ? arrayUnion(friendUid) : arrayRemove(friendUid)
+  });
+  return await fetchUserProfile(currentUserUid);
+};

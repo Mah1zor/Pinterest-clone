@@ -21,7 +21,7 @@ if (!isConfigured) {
 }
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+const app = isConfigured ? initializeApp(firebaseConfig) : null;
+export const auth = isConfigured ? getAuth(app) : null;
+export const db = isConfigured ? getFirestore(app) : null;
 export { isConfigured };

@@ -19,6 +19,16 @@ export default function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('pinterest_theme') || 'light');
   const [lang, setLang] = useState(() => localStorage.getItem('pinterest_lang') || 'ru');
   const [density, setDensity] = useState(() => localStorage.getItem('pinterest_density') || 'cozy');
+  const [appSettings, setAppSettings] = useState(() => {
+    const saved = localStorage.getItem('pinterest_app_settings');
+    return saved ? JSON.parse(saved) : {
+      gridColumns: 5,
+      privateProfile: false,
+      onlineStatus: true,
+      safeSearch: false,
+      soundEffects: true
+    };
+  });
   
   // Navigation & filtering states
   const [searchQuery, setSearchQuery] = useState('');
@@ -90,6 +100,11 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('pinterest_lang', lang);
   }, [lang]);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty('--grid-columns', appSettings.gridColumns);
+    localStorage.setItem('pinterest_app_settings', JSON.stringify(appSettings));
+  }, [appSettings]);
 
   // 4. Fetch pins based on categories, boards, or search
   const loadPinsList = async () => {
@@ -285,6 +300,12 @@ export default function App() {
                   boards={boards}
                   onUpdateUser={(updated) => setCurrentUser(updated)}
                   onOpenPinDetails={(pin) => setSelectedPin(pin)}
+                  appSettings={appSettings}
+                  setAppSettings={setAppSettings}
+                  theme={theme}
+                  setTheme={setTheme}
+                  lang={lang}
+                  setLang={setLang}
                   onLikePin={async (pinId, isLiked) => {
                     const { likePin } = await import('./firebase/db');
                     await likePin(pinId, currentUser.uid, isLiked);
@@ -319,6 +340,7 @@ export default function App() {
           onClose={() => setSelectedPin(null)}
           onUpdatePin={handleUpdatePinInFeed}
           onRefreshBoards={loadBoardsList}
+          onUpdateUser={(updated) => setCurrentUser(updated)}
         />
       )}
     </div>

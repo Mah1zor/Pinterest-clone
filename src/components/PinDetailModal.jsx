@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { commentOnPin, likePin, addPinToBoard, createBoard } from '../firebase/db';
+import { commentOnPin, likePin, addPinToBoard, createBoard, toggleFriend } from '../firebase/db';
 
 export default function PinDetailModal({
   pin,
@@ -7,7 +7,8 @@ export default function PinDetailModal({
   boards,
   onClose,
   onUpdatePin,
-  onRefreshBoards
+  onRefreshBoards,
+  onUpdateUser
 }) {
   const [commentText, setCommentText] = useState('');
   const [selectedBoardId, setSelectedBoardId] = useState(boards?.[0]?.id || '');
@@ -38,6 +39,20 @@ export default function PinDetailModal({
       });
     } catch (err) {
       console.error("Error liking pin", err);
+    }
+  };
+
+  const isFriend = currentUser?.friends?.includes(pin.creator?.uid) || currentUser?.friends?.includes(pin.creator?.username);
+
+  const handleFriendToggle = async () => {
+    try {
+      const nextFriendState = !isFriend;
+      const updatedUser = await toggleFriend(currentUser.uid, pin.creator?.uid || pin.creator?.username, nextFriendState);
+      if (onUpdateUser) {
+        onUpdateUser(updatedUser);
+      }
+    } catch (err) {
+      console.error("Error toggling friend", err);
     }
   };
 
@@ -226,6 +241,26 @@ export default function PinDetailModal({
                   @{pin.creator?.username || 'user'}
                 </div>
               </div>
+              {pin.creator?.uid !== currentUser?.uid && (
+                <button
+                  onClick={handleFriendToggle}
+                  className={`friend-btn ${isFriend ? 'is-friend' : ''}`}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '24px',
+                    border: '1px solid var(--pinterest-red)',
+                    backgroundColor: isFriend ? 'var(--white)' : 'var(--pinterest-red)',
+                    color: isFriend ? 'var(--pinterest-red)' : 'var(--white)',
+                    fontWeight: 700,
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    marginLeft: '12px'
+                  }}
+                >
+                  {isFriend ? 'Удалить из друзей' : 'В друзья'}
+                </button>
+              )}
             </div>
             
             {/* Direct Likes interaction in modal */}

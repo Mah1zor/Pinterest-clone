@@ -269,9 +269,9 @@ input, textarea, select {
   transition: background-color 0.3s ease;
 }
 
-/* Toggles styled permanently */
+/* Toggles hidden on desktop by default */
 .mobile-settings-toggle, .mobile-menu-toggle {
-  display: flex !important;
+  display: none !important;
   color: var(--black);
   font-size: 20px;
   width: 44px;
@@ -281,15 +281,10 @@ input, textarea, select {
   border-radius: 50%;
 }
 
-.mobile-settings-toggle:hover, .mobile-menu-toggle:hover {
-  background-color: var(--gray-light);
-}
-
 .logo-container {
   display: flex;
   align-items: center;
-  margin-left: 8px;
-  margin-right: 8px;
+  margin-right: 12px;
 }
 
 .logo-icon {
@@ -458,6 +453,11 @@ input, textarea, select {
   background-color: var(--gray-light);
 }
 
+.action-icon-btn.active {
+  background-color: var(--black);
+  color: var(--white);
+}
+
 .profile-avatar-btn {
   width: 48px;
   height: 48px;
@@ -477,49 +477,37 @@ input, textarea, select {
   object-fit: cover;
 }
 
-/* FLY-OUT SIDEBAR DRAWERS */
+/* SIDEBAR LAYOUTS (Desktop: Permanently Fixed) */
 .side-catalog {
   position: fixed;
   top: 80px;
-  width: 300px; /* Comfortable width for settings form layout */
+  width: 260px;
   height: calc(100vh - 80px);
   background-color: var(--white);
   padding: 24px 16px;
   overflow-y: auto;
-  z-index: 1010; /* Displays above main header content */
+  z-index: 10;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.3s ease;
+  transform: none !important;
+  box-shadow: none !important;
+  transition: background-color 0.3s ease;
 }
 
-/* Fly-out Settings sidebar on the left */
+/* Left catalog permanently on the left */
 .side-catalog.left-side {
-  left: -300px;
+  left: 0;
   border-right: 1px solid var(--gray-border);
 }
-.side-catalog.left-side.active {
-  transform: translateX(300px);
-  box-shadow: var(--shadow-modal);
-}
 
-/* Fly-out Catalog sidebar on the right */
-.side-catalog.right-side {
-  right: -300px;
-  border-left: 1px solid var(--gray-border);
-}
-.side-catalog.right-side.active {
-  transform: translateX(-300px);
-  box-shadow: var(--shadow-modal);
-}
-
-/* Drawer Close X icon inside panels */
+/* Close buttons hidden on desktop */
 .drawer-close-btn {
+  display: none !important;
   width: 32px;
   height: 32px;
   border-radius: 50%;
   color: var(--black);
-  display: flex;
   align-items: center;
   justify-content: center;
   font-size: 16px;
@@ -589,20 +577,20 @@ input, textarea, select {
   margin: 6px 12px;
 }
 
-/* Settings Forms inside Left Sidebar */
+/* Settings Forms */
 .settings-sidebar-form .form-group {
   margin-bottom: 12px;
 }
 
-/* App Main Content Area (Stretches full width since sidebars are fly-out!) */
+/* App Main Content Area (Desktop: Margined by Left Sidebar) */
 .app-content {
-  margin-top: 80px; /* Clearance for header */
-  margin-left: 0; /* No margin offsets on desktop */
+  margin-top: 80px;
+  margin-left: 260px;
   margin-right: 0;
+  width: calc(100% - 260px);
   min-height: calc(100vh - 80px);
   padding: 32px;
   box-sizing: border-box;
-  width: 100%;
   transition: var(--transition-smooth);
 }
 
@@ -615,9 +603,9 @@ input, textarea, select {
   display: block;
 }
 
-/* Masonry Feed Layout (Full screen 5 columns) */
+/* Masonry Feed Layout (4 columns on desktop since only left sidebar is fixed) */
 .feed-container {
-  max-width: 1720px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
@@ -648,8 +636,9 @@ input, textarea, select {
   }
 }
 
-/* Backdrop Dimming Overlays on all screens */
+/* Backdrops disabled on desktop */
 .sidebar-backdrop {
+  display: none !important;
   position: fixed;
   top: 80px;
   left: 0;
@@ -732,7 +721,7 @@ input, textarea, select {
   font-size: 14px;
   font-weight: 600;
   border-radius: 12px;
-  max-width: 120px;
+  max-width: 100px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -777,7 +766,7 @@ input, textarea, select {
   display: flex;
   align-items: center;
   gap: 4px;
-  max-width: 120px;
+  max-width: 100px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1372,7 +1361,7 @@ input, textarea, select {
 
 /* User Profile Section */
 .profile-container {
-  max-width: 1200px;
+  max-width: 1000px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -1494,7 +1483,7 @@ input, textarea, select {
 /* Boards Grid View */
 .boards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 20px;
   width: 100%;
 }
@@ -1512,7 +1501,7 @@ input, textarea, select {
 }
 
 .board-collage {
-  height: 160px;
+  height: 150px;
   display: flex;
   gap: 2px;
   background-color: var(--gray-light);
@@ -1558,14 +1547,14 @@ input, textarea, select {
 }
 
 .board-card-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--black);
   margin-bottom: 2px;
 }
 
 .board-card-count {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--gray-muted);
 }
 
@@ -1645,15 +1634,15 @@ input, textarea, select {
 
 /* Create Pin Section */
 .create-pin-container {
-  max-width: 880px;
+  max-width: 840px;
   margin: 0 auto;
   background-color: var(--white);
   border-radius: 32px;
   box-shadow: var(--shadow-premium);
   border: 1px solid var(--gray-border);
   display: flex;
-  padding: 40px;
-  gap: 40px;
+  padding: 36px;
+  gap: 36px;
 }
 
 @media (max-width: 768px) {
@@ -1680,7 +1669,7 @@ input, textarea, select {
   border: 2px dashed var(--gray-border);
   border-radius: 20px;
   background-color: var(--gray-light);
-  height: 380px;
+  height: 360px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1862,7 +1851,7 @@ input, textarea, select {
 }
 
 .chat-sidebar {
-  width: 320px;
+  width: 300px;
   border-right: 1px solid var(--gray-border);
   display: flex;
   flex-direction: column;
@@ -2270,3 +2259,145 @@ input, textarea, select {
   background-color: var(--gray-hover);
 }
 
+/* RESPONSIVE MEDIA QUERY OVERRIDES (Viewport under 1024px) */
+@media (max-width: 1024px) {
+  .mobile-menu-toggle {
+    display: flex !important;
+  }
+  
+  .mobile-settings-toggle {
+    display: none !important;
+  }
+  
+  .side-catalog {
+    position: fixed;
+    top: 80px;
+    width: 280px;
+    height: calc(100vh - 80px);
+    z-index: 1010;
+    transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.3s ease;
+  }
+
+  .side-catalog.left-side {
+    left: -280px;
+    border-right: 1px solid var(--gray-border);
+  }
+  .side-catalog.left-side.active {
+    transform: translateX(280px) !important;
+    box-shadow: var(--shadow-modal) !important;
+  }
+
+  .drawer-close-btn {
+    display: flex !important;
+  }
+
+  .sidebar-backdrop {
+    display: block !important;
+  }
+
+  .app-content {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+  }
+
+  .pins-grid {
+    column-count: 3;
+  }
+}
+
+@media (max-width: 768px) {
+  .pins-grid {
+    column-count: 2;
+  }
+}
+
+@media (max-width: 480px) {
+  .pins-grid {
+    column-count: 1;
+  }
+}
+
+/* GRID DENSITY CLASS OVERRIDES */
+body.density-compact .pins-grid {
+  column-gap: 8px !important;
+}
+body.density-compact .pin-card {
+  margin-bottom: 10px !important;
+}
+body.density-compact .pin-card-info {
+  padding: 4px 2px !important;
+}
+
+body.density-spacious .pins-grid {
+  column-gap: 24px !important;
+}
+body.density-spacious .pin-card {
+  margin-bottom: 28px !important;
+}
+body.density-spacious .pin-card-info {
+  padding: 12px 6px !important;
+}
+
+/* Site Settings Select options styling */
+.site-settings-panel select {
+  padding: 4px 8px;
+  border-radius: 8px;
+  background-color: var(--gray-hover);
+  color: var(--black);
+  font-weight: 600;
+  border: 1px solid var(--gray-border);
+  transition: var(--transition-smooth);
+}
+
+/* PROFILE FLEX SIDE-BY-SIDE LAYOUT (Settings inside profile on the right) */
+/* PROFILE EDIT SLIDING OVERLAY DRAWER */
+.profile-edit-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 1015;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.profile-edit-backdrop.active {
+  display: block;
+  opacity: 1;
+}
+
+.profile-edit-drawer {
+  position: fixed;
+  top: 0;
+  right: -380px;
+  width: 380px;
+  height: 100vh;
+  z-index: 1020;
+  background-color: var(--white);
+  box-shadow: var(--shadow-modal);
+  padding: 32px 24px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-edit-drawer.active {
+  transform: translateX(-380px);
+}
+
+@media (max-width: 480px) {
+  .profile-edit-drawer {
+    width: 100%;
+    right: -100%;
+  }
+  .profile-edit-drawer.active {
+    transform: translateX(-100%);
+  }
+}

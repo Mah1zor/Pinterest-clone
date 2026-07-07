@@ -297,7 +297,7 @@ export const fetchUserProfile = async (uid) => {
 };
 
 export const updateUserProfile = async (uid, data) => {
-  if (!isConfigured) {
+  if (!isConfigured || uid === 'admin-pinterest-uid') {
     const current = JSON.parse(localStorage.getItem('pinterest_mock_user')) || CURRENT_USER;
     const updated = { ...current, ...data };
     localStorage.setItem('pinterest_mock_user', JSON.stringify(updated));

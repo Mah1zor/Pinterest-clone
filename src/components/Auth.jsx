@@ -181,17 +181,6 @@ export default function Auth({ lang, onAuthSuccess }) {
           </button>
         </div>
 
-        <div className="auth-hints">
-          <div className="hints-title">
-            <i className="fa-solid fa-circle-info"></i> Быстрый вход для тестов (без Firebase API):
-          </div>
-          <div className="hint-item">
-            Логин: <code>creative_mind</code> / Пароль: <code>123</code>
-          </div>
-          <div className="hint-item">
-            Логин: <code>wanderlust_travel</code> / Пароль: <code>123</code>
-          </div>
-        </div>
       </div>
     </div>
   );

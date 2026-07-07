@@ -8,6 +8,7 @@ export default function Auth({ lang, onAuthSuccess }) {
   const [username, setUsername] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -122,14 +123,27 @@ export default function Auth({ lang, onAuthSuccess }) {
 
           <div className="auth-group">
             <label className="auth-label">{t.loginPassword}</label>
-            <input
-              type="password"
-              className="auth-input"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                className="auth-input"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={{ width: '100%', paddingRight: '40px', margin: 0 }}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute', right: '12px', background: 'none', border: 'none',
+                  cursor: 'pointer', color: 'var(--gray-text)', padding: 4, display: 'flex', alignItems: 'center'
+                }}
+              >
+                <i className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`} style={{ fontSize: 16 }}></i>
+              </button>
+            </div>
           </div>
 
           <button type="submit" className="auth-submit-btn" disabled={loading}>

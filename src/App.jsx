@@ -8,6 +8,7 @@ import PinDetailModal from './components/PinDetailModal';
 import CreatePin from './components/CreatePin';
 import Profile from './components/Profile';
 import Chat from './components/Chat';
+import AdminPanel from './components/AdminPanel';
 
 export default function App() {
   // Authentication states
@@ -16,6 +17,14 @@ export default function App() {
 
   // Layout states
   const [view, setView] = useState('feed'); // 'feed', 'create', 'profile', 'chat'
+  const [initialActiveChatFriend, setInitialActiveChatFriend] = useState(null);
+
+  const handleSetView = (newView) => {
+    setView(newView);
+    if (newView !== 'chat') {
+      setInitialActiveChatFriend(null);
+    }
+  };
   const [theme, setTheme] = useState(() => localStorage.getItem('pinterest_theme') || 'light');
   const [lang, setLang] = useState(() => localStorage.getItem('pinterest_lang') || 'ru');
   const [density, setDensity] = useState(() => localStorage.getItem('pinterest_density') || 'cozy');
@@ -173,7 +182,7 @@ export default function App() {
       <Header
         lang={lang}
         currentView={view}
-        setView={setView}
+        setView={handleSetView}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         currentUser={currentUser}
@@ -195,7 +204,7 @@ export default function App() {
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           currentView={view}
-          setView={setView}
+          setView={handleSetView}
           lang={lang}
           setLang={setLang}
           theme={theme}
@@ -208,6 +217,7 @@ export default function App() {
           selectedBoardId={selectedBoardId}
           setSelectedBoardId={setSelectedBoardId}
           onLogout={handleLogout}
+          currentUser={currentUser}
         />
 
         {/* Main Content Pane */}
@@ -303,7 +313,30 @@ export default function App() {
               )}
 
               {view === 'chat' && (
-                <Chat currentUser={currentUser} />
+                <Chat currentUser={currentUser} initialActiveFriend={initialActiveChatFriend} />
+              )}
+
+              {view === 'admin' && currentUser?.isAdmin && (
+                <AdminPanel
+                  pins={pins}
+                  onDeletePin={async (pinId, creatorUid) => {
+                    if (window.confirm('Вы действительно хотите удалить этот пин?')) {
+                      try {
+                        const { deletePin } = await import('./firebase/db');
+                        await deletePin(pinId, creatorUid);
+                        setPins(prev => prev.filter(p => p.id !== pinId));
+                        alert('Пин успешно удален.');
+                      } catch (err) {
+                        console.error(err);
+                        alert('Ошибка при удалении пина.');
+                      }
+                    }
+                  }}
+                  onContactAuthor={(creator) => {
+                    setInitialActiveChatFriend(creator);
+                    setView('chat');
+                  }}
+                />
               )}
             </>
           )}

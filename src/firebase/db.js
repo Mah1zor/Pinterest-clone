@@ -23,7 +23,8 @@ import {
   arrayRemove,
   increment,
   limit,
-  orderBy
+  orderBy,
+  deleteDoc
 } from 'firebase/firestore';
 
 // --- MOCK FALLBACK DATA (Used ONLY if Firebase keys are not provided) ---
@@ -95,6 +96,30 @@ export const signUpUser = async (email, password, name, username) => {
 };
 
 export const signInUser = async (emailOrUsername, password) => {
+  // --- Admin credentials override ---
+  if (emailOrUsername.trim().toLowerCase() === 'admin') {
+    if (password === 'И нет друзей на закате') {
+      const adminUser = {
+        uid: 'admin-pinterest-uid',
+        email: 'admin@pinterest.com',
+        name: 'Администратор',
+        username: 'admin',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        bio: 'Панель администратора Pinterest',
+        followersCount: 0,
+        followingCount: 0,
+        savedPins: [],
+        createdPins: [],
+        friends: [],
+        isAdmin: true
+      };
+      localStorage.setItem('pinterest_mock_user', JSON.stringify(adminUser));
+      return adminUser;
+    } else {
+      throw new Error('Мы живем в сумрачном мире');
+    }
+  }
+
   if (!isConfigured) {
     // Mock Signin
     const mockUser = MOCK_USERS.find(u => u.username === emailOrUsername) || JSON.parse(localStorage.getItem('pinterest_mock_user'));
@@ -395,6 +420,30 @@ export const createPin = async (pinData, creatorProfile) => {
   });
 
   return { id: docRef.id, ...pin };
+};
+
+export const deletePin = async (pinId, creatorUid) => {
+  if (!isConfigured) {
+    // Delete from INITIAL_PINS
+    const index = INITIAL_PINS.findIndex(p => p.id === pinId);
+    if (index !== -1) {
+      INITIAL_PINS.splice(index, 1);
+    }
+    return;
+  }
+
+  // Delete document from Firestore pins collection
+  const pinRef = doc(db, 'pins', pinId);
+  await deleteDoc(pinRef);
+
+  // Remove pin from creator's lists (if creatorUid is provided)
+  if (creatorUid) {
+    const userRef = doc(db, 'users', creatorUid);
+    await updateDoc(userRef, {
+      createdPins: arrayRemove(pinId),
+      savedPins: arrayRemove(pinId)
+    });
+  }
 };
 
 export const likePin = async (pinId, userId, isLiked) => {

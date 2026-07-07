@@ -113,6 +113,11 @@ export default function Auth({ lang, onAuthSuccess }) {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
+            {isLogin && email.trim().toLowerCase() === 'admin' && (
+              <div style={{ color: '#e60023', fontSize: 13, fontWeight: 700, marginTop: 6, fontStyle: 'italic', textAlign: 'center' }}>
+                Мы живем в сумрачном мире
+              </div>
+            )}
           </div>
 
           <div className="auth-group">

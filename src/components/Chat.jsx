@@ -5,7 +5,7 @@ import { isConfigured } from '../firebase/config';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
-export default function Chat({ currentUser }) {
+export default function Chat({ currentUser, initialActiveFriend }) {
   const [friends, setFriends] = useState([]);
   const [activeFriend, setActiveFriend] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -14,6 +14,20 @@ export default function Chat({ currentUser }) {
   const [chatId, setChatId] = useState(null);
   
   const messagesEndRef = useRef(null);
+
+  // Auto-select friend when redirected from Admin Panel
+  useEffect(() => {
+    if (initialActiveFriend) {
+      setFriends(prev => {
+        const exists = prev.some(f => f.uid === initialActiveFriend.uid);
+        if (!exists) {
+          return [initialActiveFriend, ...prev];
+        }
+        return prev;
+      });
+      setActiveFriend(initialActiveFriend);
+    }
+  }, [initialActiveFriend]);
 
   // Load friends/users list
   useEffect(() => {

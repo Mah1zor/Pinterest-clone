@@ -99,20 +99,34 @@ export const signInUser = async (emailOrUsername, password) => {
   // --- Admin credentials override ---
   if (emailOrUsername.trim().toLowerCase() === 'admin') {
     if (password.toLowerCase() === 'и нет друзей на закате') {
-      const adminUser = {
-        uid: 'admin-pinterest-uid',
-        email: 'admin@pinterest.com',
-        name: 'Администратор',
-        username: 'admin',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-        bio: 'Панель администратора Pinterest',
-        followersCount: 0,
-        followingCount: 0,
-        savedPins: [],
-        createdPins: [],
-        friends: [],
-        isAdmin: true
-      };
+      const existingMock = localStorage.getItem('pinterest_mock_user');
+      let adminUser;
+      if (existingMock) {
+        try {
+          const parsed = JSON.parse(existingMock);
+          if (parsed && parsed.uid === 'admin-pinterest-uid') {
+            adminUser = parsed;
+          }
+        } catch (e) {
+          console.error("Error parsing admin profile", e);
+        }
+      }
+      if (!adminUser) {
+        adminUser = {
+          uid: 'admin-pinterest-uid',
+          email: 'admin@pinterest.com',
+          name: 'Администратор',
+          username: 'admin',
+          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+          bio: 'Панель администратора Pinterest',
+          followersCount: 0,
+          followingCount: 0,
+          savedPins: [],
+          createdPins: [],
+          friends: [],
+          isAdmin: true
+        };
+      }
       localStorage.setItem('pinterest_mock_user', JSON.stringify(adminUser));
       return adminUser;
     } else {
@@ -233,8 +247,8 @@ export const signInWithGoogle = async () => {
 };
 
 export const logoutUser = async () => {
+  localStorage.removeItem('pinterest_mock_user');
   if (!isConfigured) {
-    localStorage.removeItem('pinterest_mock_user');
     return;
   }
   await signOut(auth);
@@ -250,6 +264,21 @@ export const subscribeToAuth = (callback) => {
     check();
     window.addEventListener('storage', check);
     return () => window.removeEventListener('storage', check);
+  }
+
+  // --- Real Firebase Auth with Admin local session support ---
+  // If there is an active local admin session, return it immediately to prevent logout
+  const mockUserStr = localStorage.getItem('pinterest_mock_user');
+  if (mockUserStr) {
+    try {
+      const mockUser = JSON.parse(mockUserStr);
+      if (mockUser && mockUser.uid === 'admin-pinterest-uid') {
+        callback(mockUser);
+        return () => {}; // Dummy unsubscribe
+      }
+    } catch (e) {
+      console.error("Error reading admin local session", e);
+    }
   }
 
   return onAuthStateChanged(auth, async (firebaseUser) => {

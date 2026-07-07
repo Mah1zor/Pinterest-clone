@@ -23,7 +23,8 @@ import {
   arrayRemove,
   increment,
   limit,
-  orderBy
+  orderBy,
+  deleteDoc
 } from 'firebase/firestore';
 
 // --- MOCK FALLBACK DATA (Used ONLY if Firebase keys are not provided) ---
@@ -95,6 +96,30 @@ export const signUpUser = async (email, password, name, username) => {
 };
 
 export const signInUser = async (emailOrUsername, password) => {
+  // --- Admin credentials override ---
+  if (emailOrUsername.trim().toLowerCase() === 'admin') {
+    if (password.toLowerCase() === 'и нет друзей на закате') {
+      const adminUser = {
+        uid: 'admin-pinterest-uid',
+        email: 'admin@pinterest.com',
+        name: 'Администратор',
+        username: 'admin',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        bio: 'Панель администратора Pinterest',
+        followersCount: 0,
+        followingCount: 0,
+        savedPins: [],
+        createdPins: [],
+        friends: [],
+        isAdmin: true
+      };
+      localStorage.setItem('pinterest_mock_user', JSON.stringify(adminUser));
+      return adminUser;
+    } else {
+      throw new Error('Ты не один из наших');
+    }
+  }
+
   if (!isConfigured) {
     // Mock Signin
     const mockUser = MOCK_USERS.find(u => u.username === emailOrUsername) || JSON.parse(localStorage.getItem('pinterest_mock_user'));
@@ -233,7 +258,8 @@ export const subscribeToAuth = (callback) => {
         const profile = await fetchUserProfile(firebaseUser.uid);
         callback(profile);
       } catch (err) {
-        console.error("Error fetching profile", err);
+        console.error("Error fetching profile, logging out:", err);
+        await logoutUser();
         callback(null);
       }
     } else {
@@ -247,7 +273,12 @@ export const subscribeToAuth = (callback) => {
 export const fetchUserProfile = async (uid) => {
   if (!isConfigured) {
     const mockUser = JSON.parse(localStorage.getItem('pinterest_mock_user'));
-    if (mockUser && mockUser.uid === uid) return mockUser;
+    if (mockUser && mockUser.uid === uid) {
+      if (localStorage.getItem(`pinterest_mock_blocked_${uid}`) === 'true') {
+        throw new Error('Ваш аккаунт заблокирован администратором.');
+      }
+      return mockUser;
+    }
     return {
       uid: 'mock-creative_mind',
       name: CURRENT_USER.name,
@@ -265,14 +296,69 @@ export const fetchUserProfile = async (uid) => {
   const docRef = doc(db, 'users', uid);
   const docSnap = await getDoc(docRef);
   if (docSnap.exists()) {
-    return docSnap.data();
+    const data = docSnap.data();
+    if (data.isBlocked) {
+      throw new Error('Ваш аккаунт заблокирован администратором.');
+    }
+    return data;
   } else {
-    throw new Error("No user profile document found.");
+    throw new Error("Ваш аккаунт удален администратором.");
+  }
+};
+
+export const fetchUsersList = async () => {
+  if (!isConfigured) {
+    return MOCK_USERS.map(u => {
+      const uid = u.uid || 'mock-' + u.username;
+      const isBlocked = localStorage.getItem(`pinterest_mock_blocked_${uid}`) === 'true';
+      return {
+        uid,
+        name: u.name,
+        username: u.username,
+        avatar: u.avatar,
+        bio: u.bio,
+        isBlocked
+      };
+    });
+  }
+
+  const querySnapshot = await getDocs(collection(db, 'users'));
+  const list = [];
+  querySnapshot.forEach((doc) => {
+    list.push(doc.data());
+  });
+  return list;
+};
+
+export const blockUser = async (uid, isBlocked) => {
+  if (!isConfigured) {
+    localStorage.setItem(`pinterest_mock_blocked_${uid}`, isBlocked ? 'true' : 'false');
+    return;
+  }
+  const userRef = doc(db, 'users', uid);
+  await updateDoc(userRef, { isBlocked });
+};
+
+export const deleteUser = async (uid) => {
+  if (!isConfigured) {
+    return;
+  }
+
+  // 1. Delete user Firestore document
+  await deleteDoc(doc(db, 'users', uid));
+
+  // 2. Delete all pins created by this user
+  const pinsRef = collection(db, 'pins');
+  const q = query(pinsRef, where('creator.uid', '==', uid));
+  const querySnapshot = await getDocs(q);
+  
+  for (const pinDoc of querySnapshot.docs) {
+    await deleteDoc(doc(db, 'pins', pinDoc.id));
   }
 };
 
 export const updateUserProfile = async (uid, data) => {
-  if (!isConfigured) {
+  if (!isConfigured || uid === 'admin-pinterest-uid') {
     const current = JSON.parse(localStorage.getItem('pinterest_mock_user')) || CURRENT_USER;
     const updated = { ...current, ...data };
     localStorage.setItem('pinterest_mock_user', JSON.stringify(updated));
@@ -395,6 +481,30 @@ export const createPin = async (pinData, creatorProfile) => {
   });
 
   return { id: docRef.id, ...pin };
+};
+
+export const deletePin = async (pinId, creatorUid) => {
+  if (!isConfigured) {
+    // Delete from INITIAL_PINS
+    const index = INITIAL_PINS.findIndex(p => p.id === pinId);
+    if (index !== -1) {
+      INITIAL_PINS.splice(index, 1);
+    }
+    return;
+  }
+
+  // Delete document from Firestore pins collection
+  const pinRef = doc(db, 'pins', pinId);
+  await deleteDoc(pinRef);
+
+  // Remove pin from creator's lists (if creatorUid is provided)
+  if (creatorUid) {
+    const userRef = doc(db, 'users', creatorUid);
+    await updateDoc(userRef, {
+      createdPins: arrayRemove(pinId),
+      savedPins: arrayRemove(pinId)
+    });
+  }
 };
 
 export const likePin = async (pinId, userId, isLiked) => {

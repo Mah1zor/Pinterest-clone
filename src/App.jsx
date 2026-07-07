@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { subscribeToAuth, logoutUser, fetchPins, fetchBoards } from './firebase/db';
+import { subscribeToAuth, logoutUser, fetchPins, fetchBoards, fetchUserProfile } from './firebase/db';
 import Auth from './components/Auth';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -8,6 +8,9 @@ import PinDetailModal from './components/PinDetailModal';
 import CreatePin from './components/CreatePin';
 import Profile from './components/Profile';
 import Chat from './components/Chat';
+import AdminPanel from './components/AdminPanel';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db, isConfigured } from './firebase/config';
 
 export default function App() {
   // Authentication states
@@ -16,6 +19,15 @@ export default function App() {
 
   // Layout states
   const [view, setView] = useState('feed'); // 'feed', 'create', 'profile', 'chat'
+  const [initialActiveChatFriend, setInitialActiveChatFriend] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+
+  const handleSetView = (newView) => {
+    setView(newView);
+    if (newView !== 'chat') {
+      setInitialActiveChatFriend(null);
+    }
+  };
   const [theme, setTheme] = useState(() => localStorage.getItem('pinterest_theme') || 'light');
   const [lang, setLang] = useState(() => localStorage.getItem('pinterest_lang') || 'ru');
   const [density, setDensity] = useState(() => localStorage.getItem('pinterest_density') || 'cozy');
@@ -55,6 +67,122 @@ export default function App() {
     });
     return () => unsubscribe();
   }, []);
+
+  // Toast Notification trigger
+  const triggerNotification = async ({ type, title, message, senderId }) => {
+    let name = 'Кто-то';
+    let avatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80';
+    
+    if (senderId) {
+      try {
+        if (senderId === 'admin-pinterest-uid') {
+          name = 'Администратор';
+          avatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
+        } else {
+          const profile = await fetchUserProfile(senderId);
+          name = profile.name || profile.username;
+          avatar = profile.avatar || avatar;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    
+    const id = Date.now() + Math.random().toString();
+    const newNotif = {
+      id,
+      type,
+      title: type === 'message' ? `Сообщение от ${name}` : title,
+      message: type === 'message' ? message : `${name} оценил(а) ваш пин`,
+      avatar
+    };
+    
+    setNotifications(prev => [newNotif, ...prev]);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    }, 5000);
+  };
+
+  // Real-time listener for incoming chat messages
+  useEffect(() => {
+    if (!currentUser) return;
+    if (!isConfigured) return;
+    
+    const chatsRef = collection(db, 'chats');
+    const q = query(chatsRef, where('participants', 'array-contains', currentUser.uid));
+    
+    let isInitialLoad = true;
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (isInitialLoad) {
+        isInitialLoad = false;
+        return;
+      }
+      
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === 'modified') {
+          const chatData = change.doc.data();
+          const messagesList = chatData.messages || [];
+          if (messagesList.length > 0) {
+            const lastMsg = messagesList[messagesList.length - 1];
+            if (lastMsg.sender !== currentUser.uid) {
+              triggerNotification({
+                type: 'message',
+                title: 'Новое сообщение',
+                message: lastMsg.text,
+                senderId: lastMsg.sender
+              });
+            }
+          }
+        }
+      });
+    });
+    
+    return () => unsubscribe();
+  }, [currentUser]);
+
+  // Real-time listener for likes on our pins
+  useEffect(() => {
+    if (!currentUser) return;
+    if (!isConfigured) return;
+    
+    const pinsRef = collection(db, 'pins');
+    const q = query(pinsRef, where('creator.uid', '==', currentUser.uid));
+    
+    let isInitialLoad = true;
+    const prevLikesMap = {};
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        const pinData = change.doc.data();
+        const pinId = change.doc.id;
+        const currentLikes = pinData.likedBy || [];
+        const prevLikes = prevLikesMap[pinId] || [];
+        
+        // Update cache
+        prevLikesMap[pinId] = currentLikes;
+        
+        if (isInitialLoad) return;
+        
+        if (currentLikes.length > prevLikes.length) {
+          const newLiker = currentLikes.find(uid => !prevLikes.includes(uid));
+          if (newLiker && newLiker !== currentUser.uid) {
+            triggerNotification({
+              type: 'like',
+              title: 'Новый лайк ❤️',
+              message: `Пользователь оценил ваш пин "${pinData.title}"`,
+              senderId: newLiker
+            });
+          }
+        }
+      });
+      isInitialLoad = false;
+    });
+    
+    return () => unsubscribe();
+  }, [currentUser]);
 
   // 2. Fetch User's boards when logged in
   const loadBoardsList = async () => {
@@ -188,7 +316,7 @@ export default function App() {
       <Header
         lang={lang}
         currentView={view}
-        setView={setView}
+        setView={handleSetView}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         currentUser={currentUser}
@@ -210,7 +338,7 @@ export default function App() {
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           currentView={view}
-          setView={setView}
+          setView={handleSetView}
           lang={lang}
           setLang={setLang}
           theme={theme}
@@ -223,6 +351,7 @@ export default function App() {
           selectedBoardId={selectedBoardId}
           setSelectedBoardId={setSelectedBoardId}
           onLogout={handleLogout}
+          currentUser={currentUser}
         />
 
         {/* Main Content Pane */}
@@ -324,7 +453,30 @@ export default function App() {
               )}
 
               {view === 'chat' && (
-                <Chat currentUser={currentUser} />
+                <Chat currentUser={currentUser} initialActiveFriend={initialActiveChatFriend} />
+              )}
+
+              {view === 'admin' && currentUser?.isAdmin && (
+                <AdminPanel
+                  pins={pins}
+                  onDeletePin={async (pinId, creatorUid) => {
+                    if (window.confirm('Вы действительно хотите удалить этот пин?')) {
+                      try {
+                        const { deletePin } = await import('./firebase/db');
+                        await deletePin(pinId, creatorUid);
+                        setPins(prev => prev.filter(p => p.id !== pinId));
+                        alert('Пин успешно удален.');
+                      } catch (err) {
+                        console.error(err);
+                        alert('Ошибка при удалении пина.');
+                      }
+                    }
+                  }}
+                  onContactAuthor={(creator) => {
+                    setInitialActiveChatFriend(creator);
+                    setView('chat');
+                  }}
+                />
               )}
             </>
           )}
@@ -343,6 +495,30 @@ export default function App() {
           onUpdateUser={(updated) => setCurrentUser(updated)}
         />
       )}
+
+      {/* Toast Notifications Container */}
+      <div style={{
+        position: 'fixed', bottom: 20, right: 20, zIndex: 99999,
+        display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 350
+      }}>
+        {notifications.map(n => (
+          <div key={n.id} style={{
+            display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+            backgroundColor: 'var(--white)', color: 'var(--black)', borderRadius: 16,
+            boxShadow: '0 8px 30px rgba(0,0,0,0.15)', border: '1px solid var(--gray-border)',
+            animation: 'slideIn 0.3s ease-out forwards', cursor: 'pointer'
+          }} onClick={() => handleSetView(n.type === 'message' ? 'chat' : 'profile')}>
+            <img src={n.avatar} alt="" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{n.title}</div>
+              <div style={{ fontSize: 12, color: 'var(--gray-text)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', marginTop: 2 }}>{n.message}</div>
+            </div>
+            <i className={`fa-solid ${n.type === 'message' ? 'fa-comment' : 'fa-heart'}`} style={{
+              color: n.type === 'message' ? '#4285F4' : '#e60023', fontSize: 18
+            }}></i>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

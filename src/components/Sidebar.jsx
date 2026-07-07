@@ -16,9 +16,10 @@ export default function Sidebar({
   activeCategory,
   setActiveCategory,
   boards,
-  setSelectedBoardId,
   selectedBoardId,
-  onLogout
+  setSelectedBoardId,
+  onLogout,
+  currentUser
 }) {
   const t = LOCALES[lang] || LOCALES.ru;
 
@@ -104,6 +105,18 @@ export default function Sidebar({
             <i className="fa-solid fa-comments catalog-item-icon"></i>
             <span>Чат</span>
           </button>
+          {currentUser?.isAdmin && (
+            <button
+              className={`catalog-item ${currentView === 'admin' ? 'active' : ''}`}
+              onClick={() => {
+                setView('admin');
+                if (onClose) onClose();
+              }}
+            >
+              <i className="fa-solid fa-shield-halved catalog-item-icon"></i>
+              <span>Админ-панель</span>
+            </button>
+          )}
         </div>
       </div>
 

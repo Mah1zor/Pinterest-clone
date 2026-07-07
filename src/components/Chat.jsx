@@ -5,7 +5,16 @@ import { isConfigured } from '../firebase/config';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
-export default function Chat({ currentUser }) {
+const ADMIN_INFO = {
+  uid: 'admin-pinterest-uid',
+  username: 'admin',
+  name: 'Администратор',
+  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+  bio: 'Панель администратора Pinterest',
+  isAdmin: true
+};
+
+export default function Chat({ currentUser, initialActiveFriend }) {
   const [friends, setFriends] = useState([]);
   const [activeFriend, setActiveFriend] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -15,19 +24,40 @@ export default function Chat({ currentUser }) {
   
   const messagesEndRef = useRef(null);
 
+  // Auto-select friend when redirected from Admin Panel
+  useEffect(() => {
+    if (initialActiveFriend) {
+      setFriends(prev => {
+        const exists = prev.some(f => f.uid === initialActiveFriend.uid);
+        if (!exists) {
+          return [initialActiveFriend, ...prev];
+        }
+        return prev;
+      });
+      setActiveFriend(initialActiveFriend);
+    }
+  }, [initialActiveFriend]);
+
   // Load friends/users list
   useEffect(() => {
     async function loadUsers() {
       if (!isConfigured) {
         // Fallback: list other mock users
         const others = MOCK_USERS.filter(u => u.username !== currentUser.username);
-        setFriends(others.map(u => ({
-          uid: u.uid || 'mock-wanderlust_travel',
+        const mappedOthers = others.map(u => ({
+          uid: u.uid || 'mock-' + u.username,
           username: u.username,
           name: u.name,
           avatar: u.avatar,
           bio: u.bio
-        })));
+        }));
+        
+        if (currentUser.username !== 'admin') {
+          // Prepend admin to the list of friends for normal users
+          setFriends([ADMIN_INFO, ...mappedOthers]);
+        } else {
+          setFriends(mappedOthers);
+        }
         return;
       }
 
@@ -36,11 +66,16 @@ export default function Chat({ currentUser }) {
         const list = [];
         usersSnapshot.forEach((doc) => {
           const data = doc.data();
-          if (data.uid !== currentUser.uid) {
+          if (data.uid !== currentUser.uid && data.username !== 'admin') {
             list.push(data);
           }
         });
-        setFriends(list);
+        
+        if (currentUser.username !== 'admin') {
+          setFriends([ADMIN_INFO, ...list]);
+        } else {
+          setFriends(list);
+        }
       } catch (err) {
         console.error("Error loading users for chat", err);
       }
@@ -106,9 +141,42 @@ export default function Chat({ currentUser }) {
       return;
     }
 
+    if (queryUsername === 'admin') {
+      if (currentUser.username === 'admin') {
+        alert("Вы не можете добавить себя в друзья.");
+      } else {
+        setFriends(prev => {
+          const exists = prev.some(f => f.uid === ADMIN_INFO.uid);
+          if (!exists) return [ADMIN_INFO, ...prev];
+          return prev;
+        });
+        setActiveFriend(ADMIN_INFO);
+        setSearchFriend('');
+      }
+      return;
+    }
+
     try {
       if (!isConfigured) {
-        alert("Firebase не настроен. Вы можете чатиться с wanderlust_travel.");
+        const found = MOCK_USERS.find(u => u.username.toLowerCase() === queryUsername);
+        if (found) {
+          const formatted = {
+            uid: found.uid || 'mock-' + found.username,
+            username: found.username,
+            name: found.name,
+            avatar: found.avatar,
+            bio: found.bio
+          };
+          setFriends(prev => {
+            const exists = prev.some(f => f.uid === formatted.uid);
+            if (!exists) return [formatted, ...prev];
+            return prev;
+          });
+          setActiveFriend(formatted);
+          setSearchFriend('');
+        } else {
+          alert("Пользователь с таким именем не найден.");
+        }
         return;
       }
 
@@ -123,7 +191,11 @@ export default function Chat({ currentUser }) {
       }
       
       const foundUser = querySnapshot.docs[0].data();
-      setFriends(prev => [foundUser, ...prev]);
+      setFriends(prev => {
+        const exists = prev.some(f => f.uid === foundUser.uid);
+        if (!exists) return [foundUser, ...prev];
+        return prev;
+      });
       setActiveFriend(foundUser);
       setSearchFriend('');
     } catch (err) {
@@ -180,8 +252,13 @@ export default function Chat({ currentUser }) {
                     style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }}
                   />
                   <div style={{ overflow: 'hidden' }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', color: 'var(--black)' }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', color: 'var(--black)', display: 'flex', alignItems: 'center', gap: 6 }}>
                       {friend.name}
+                      {friend.isAdmin && (
+                        <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 10, backgroundColor: '#e60023', color: '#fff', fontWeight: 600 }}>
+                          Admin
+                        </span>
+                      )}
                     </div>
                     <div style={{ fontSize: 11, color: 'var(--gray-text)' }}>
                       @{friend.username}

@@ -2,6 +2,26 @@ import React from 'react';
 import { CATEGORIES } from '../../data';
 import { LOCALES } from '../locales';
 
+const CATEGORY_ICONS = {
+  all: 'fa-globe',
+  interior: 'fa-couch',
+  travel: 'fa-earth-americas',
+  nature: 'fa-leaf',
+  architecture: 'fa-landmark',
+  food: 'fa-utensils',
+  art: 'fa-palette'
+};
+
+const CATEGORY_COLORS = {
+  all: '#007aff',      // Blue
+  interior: '#ff9500', // Orange
+  travel: '#5856d6',   // Indigo
+  nature: '#34c759',   // Green
+  architecture: '#8e8e93', // Gray
+  food: '#ff2d55',     // Pink
+  art: '#af52de'       // Purple
+};
+
 export default function Sidebar({
   isOpen,
   onClose,
@@ -145,16 +165,27 @@ export default function Sidebar({
       <div className="catalog-section">
         <h4 className="catalog-heading" id="label-cat-categories">{t.catCategories}</h4>
         <div className="catalog-menu-items">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.id}
-              className={`catalog-item ${activeCategory === cat.id && !selectedBoardId ? 'active' : ''}`}
-              onClick={() => handleCategoryClick(cat.id)}
-            >
-              <i className="fa-solid fa-tag catalog-item-icon"></i>
-              <span>{cat.name}</span>
-            </button>
-          ))}
+          {CATEGORIES.map((cat) => {
+            const iconClass = CATEGORY_ICONS[cat.id] || 'fa-tag';
+            const iconColor = CATEGORY_COLORS[cat.id] || 'var(--black)';
+            const isActive = activeCategory === cat.id && !selectedBoardId;
+            return (
+              <button
+                key={cat.id}
+                className={`catalog-item ${isActive ? 'active' : ''}`}
+                onClick={() => handleCategoryClick(cat.id)}
+              >
+                <i 
+                  className={`fa-solid ${iconClass} catalog-item-icon`} 
+                  style={{ 
+                    color: isActive ? 'var(--white)' : iconColor,
+                    transition: 'color 0.2s'
+                  }}
+                ></i>
+                <span>{cat.name}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 

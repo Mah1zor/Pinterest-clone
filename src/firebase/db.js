@@ -98,7 +98,7 @@ export const signUpUser = async (email, password, name, username) => {
 export const signInUser = async (emailOrUsername, password) => {
   // --- Admin credentials override ---
   if (emailOrUsername.trim().toLowerCase() === 'admin') {
-    if (password === 'И нет друзей на закате') {
+    if (password.toLowerCase() === 'и нет друзей на закате') {
       const adminUser = {
         uid: 'admin-pinterest-uid',
         email: 'admin@pinterest.com',

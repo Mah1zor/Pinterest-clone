@@ -130,7 +130,7 @@ export default function CustomCursor() {
             border: '2px solid #000',
             borderRadius: '50%',
             pointerEvents: 'none',
-            zIndex: 9999,
+            zIndex: 100002,
             transform: 'translate(-50%, -50%)',
             boxShadow: '1px 2px 0 #000'
           }}

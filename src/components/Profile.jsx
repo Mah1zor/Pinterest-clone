@@ -34,6 +34,7 @@ export default function Profile({
   const [editSoundEffects, setEditSoundEffects] = useState(appSettings?.soundEffects || false);
   const [editTheme, setEditTheme] = useState(theme || 'light');
   const [editLang, setEditLang] = useState(lang || 'ru');
+  const [editFontStyle, setEditFontStyle] = useState(appSettings?.fontStyle || 'standard');
 
   const handleEditSubmit = (e) => {
     e.preventDefault();
@@ -42,7 +43,8 @@ export default function Profile({
       privateProfile: editPrivateProfile,
       onlineStatus: editOnlineStatus,
       safeSearch: editSafeSearch,
-      soundEffects: editSoundEffects
+      soundEffects: editSoundEffects,
+      fontStyle: editFontStyle
     });
     setTheme(editTheme);
     setLang(editLang);
@@ -135,6 +137,7 @@ export default function Profile({
               setEditSoundEffects(appSettings?.soundEffects || false);
               setEditTheme(theme || 'light');
               setEditLang(lang || 'ru');
+              setEditFontStyle(appSettings?.fontStyle || 'standard');
               setIsEditing(true);
             }}
             style={{
@@ -218,6 +221,19 @@ export default function Profile({
                 >
                   <option value="light">Светлая</option>
                   <option value="dark">Темная</option>
+                </select>
+              </div>
+
+              <div className="auth-group">
+                <label className="auth-label">Стиль текста (Шрифт)</label>
+                <select
+                  className="auth-input"
+                  value={editFontStyle}
+                  onChange={(e) => setEditFontStyle(e.target.value)}
+                  style={{ width: '100%', height: '40px', borderRadius: '10px', backgroundColor: 'var(--white)', color: 'var(--black)', border: '1px solid var(--gray-border)' }}
+                >
+                  <option value="standard">Стандартный (Outfit / Inter)</option>
+                  <option value="handwritten">Рукописный (Caveat / Neucha)</option>
                 </select>
               </div>
 

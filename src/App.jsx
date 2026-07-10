@@ -41,7 +41,8 @@ export default function App() {
       privateProfile: false,
       onlineStatus: true,
       safeSearch: false,
-      soundEffects: true
+      soundEffects: true,
+      fontStyle: 'standard'
     };
   });
   
@@ -245,6 +246,7 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.style.setProperty('--grid-columns', appSettings.gridColumns);
+    document.documentElement.setAttribute('data-font', appSettings.fontStyle || 'standard');
     localStorage.setItem('pinterest_app_settings', JSON.stringify(appSettings));
   }, [appSettings]);
 

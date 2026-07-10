@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { getOrCreateChat, subscribeToChat, sendMessage, fetchUserProfile } from '../firebase/db';
 import { MOCK_USERS } from '../../data';
 import { isConfigured } from '../firebase/config';
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
 const ADMIN_INFO = {
@@ -21,8 +21,8 @@ export default function Chat({ currentUser, initialActiveFriend }) {
   const [inputText, setInputText] = useState('');
   const [searchFriend, setSearchFriend] = useState('');
   const [chatId, setChatId] = useState(null);
-  
-  const messagesEndRef = useRef(null);
+  const [sidebarTab, setSidebarTab] = useState('chats'); // 'chats' or 'friends'
+  const [activeChats, setActiveChats] = useState([]);
 
   // Auto-select friend when redirected from Admin Panel
   useEffect(() => {
@@ -35,8 +35,50 @@ export default function Chat({ currentUser, initialActiveFriend }) {
         return prev;
       });
       setActiveFriend(initialActiveFriend);
+      setSidebarTab('chats');
     }
   }, [initialActiveFriend]);
+
+  // Load active chats dynamically from messages database
+  useEffect(() => {
+    if (!isConfigured) {
+      return;
+    }
+    
+    const q = query(collection(db, 'chats'), where('participants', 'array-contains', currentUser.uid));
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      const chatUsers = [];
+      for (const docSnap of snapshot.docs) {
+        const data = docSnap.data();
+        if (data.messages && data.messages.length > 0) {
+          const otherUid = data.participants.find(uid => uid !== currentUser.uid);
+          if (otherUid) {
+            try {
+              let uProfile;
+              if (otherUid === 'admin-pinterest-uid') {
+                const adminDoc = await getDoc(doc(db, 'users', 'admin-pinterest-uid'));
+                uProfile = adminDoc.exists() ? adminDoc.data() : ADMIN_INFO;
+              } else {
+                uProfile = await fetchUserProfile(otherUid);
+              }
+              if (uProfile) {
+                chatUsers.push({ ...uProfile, chatId: docSnap.id });
+              }
+            } catch (e) {
+              console.error("Error loading chat participant", e);
+            }
+          }
+        }
+      }
+      setActiveChats(chatUsers);
+    });
+    
+    return () => unsubscribe();
+  }, [currentUser, friends]);
+
+  const messagesEndRef = useRef(null);
+
+
 
   // Load friends/users list
   useEffect(() => {
@@ -228,59 +270,133 @@ export default function Chat({ currentUser, initialActiveFriend }) {
         
         {/* Left Side: Friends Panel */}
         <div className="chat-sidebar" style={{ display: 'flex', flexDirection: 'column', width: 280, borderRight: '1px solid var(--gray-border)', padding: 16 }}>
-          <form onSubmit={handleAddFriend} className="add-friend-box" style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
-            <input
-              type="text"
-              placeholder="Добавить по @username..."
-              value={searchFriend}
-              onChange={(e) => setSearchFriend(e.target.value)}
+          {/* Tabs header */}
+          <div style={{ display: 'flex', borderBottom: '1px solid var(--gray-border)', marginBottom: 12 }}>
+            <button
+              onClick={() => setSidebarTab('chats')}
               style={{
-                flex: 1, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--gray-border)',
-                fontSize: 13, backgroundColor: 'var(--white)', color: 'var(--black)', outline: 'none'
+                flex: 1, padding: '10px 0', border: 'none', background: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer',
+                color: sidebarTab === 'chats' ? '#e60023' : 'var(--gray-text)',
+                borderBottom: sidebarTab === 'chats' ? '2px solid #e60023' : '2px solid transparent',
+                transition: 'all 0.2s'
               }}
-            />
-            <button type="submit" className="auth-submit-btn" style={{ padding: '8px 12px', fontSize: 13, margin: 0 }}>
-              +
+            >
+              Диалоги
             </button>
-          </form>
+            <button
+              onClick={() => setSidebarTab('friends')}
+              style={{
+                flex: 1, padding: '10px 0', border: 'none', background: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer',
+                color: sidebarTab === 'friends' ? '#e60023' : 'var(--gray-text)',
+                borderBottom: sidebarTab === 'friends' ? '2px solid #e60023' : '2px solid transparent',
+                transition: 'all 0.2s'
+              }}
+            >
+              Друзья ({isConfigured ? friends.length : MOCK_USERS.length - 1})
+            </button>
+          </div>
+
+          {/* Add Friend form (only visible on Friends tab) */}
+          {sidebarTab === 'friends' && (
+            <form onSubmit={handleAddFriend} className="add-friend-box" style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+              <input
+                type="text"
+                placeholder="Поиск по @username..."
+                value={searchFriend}
+                onChange={(e) => setSearchFriend(e.target.value)}
+                style={{
+                  flex: 1, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--gray-border)',
+                  fontSize: 13, backgroundColor: 'var(--white)', color: 'var(--black)', outline: 'none'
+                }}
+              />
+              <button type="submit" className="auth-submit-btn" style={{ padding: '8px 12px', fontSize: 13, margin: 0 }}>
+                +
+              </button>
+            </form>
+          )}
 
           <div className="friends-list" style={{ flexGrow: 1, overflowY: 'auto' }}>
-            {friends.length === 0 ? (
-              <p style={{ fontSize: 12, color: 'var(--gray-text)', textAlign: 'center', marginTop: 20 }}>
-                Список собеседников пуст
-              </p>
-            ) : (
-              friends.map(friend => (
-                <div
-                  key={friend.uid}
-                  className={`friend-item ${activeFriend?.uid === friend.uid ? 'active' : ''}`}
-                  onClick={() => setActiveFriend(friend)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px',
-                    borderRadius: 12, cursor: 'pointer', marginBottom: 4,
-                    backgroundColor: activeFriend?.uid === friend.uid ? 'var(--gray-hover)' : 'transparent'
-                  }}
-                >
-                  <img
-                    src={friend.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'}
-                    alt={friend.name}
-                    style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }}
-                  />
-                  <div style={{ overflow: 'hidden' }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', color: 'var(--black)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                      {friend.name}
-                      {friend.isAdmin && (
-                        <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 10, backgroundColor: '#e60023', color: '#fff', fontWeight: 600 }}>
-                          Admin
-                        </span>
-                      )}
-                    </div>
-                    <div style={{ fontSize: 11, color: 'var(--gray-text)' }}>
-                      @{friend.username}
+            {sidebarTab === 'chats' ? (
+              /* Dialogs Tab List */
+              (!isConfigured ? friends : activeChats).length === 0 ? (
+                <p style={{ fontSize: 12, color: 'var(--gray-text)', textAlign: 'center', marginTop: 20 }}>
+                  Нет активных диалогов.<br/>Напишите другу во вкладке «Друзья»!
+                </p>
+              ) : (
+                (!isConfigured ? friends : activeChats).map(friend => (
+                  <div
+                    key={friend.uid}
+                    className={`friend-item ${activeFriend?.uid === friend.uid ? 'active' : ''}`}
+                    onClick={() => setActiveFriend(friend)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px',
+                      borderRadius: 12, cursor: 'pointer', marginBottom: 4,
+                      backgroundColor: activeFriend?.uid === friend.uid ? 'var(--gray-hover)' : 'transparent'
+                    }}
+                  >
+                    <img
+                      src={friend.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'}
+                      alt={friend.name}
+                      style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }}
+                    />
+                    <div style={{ overflow: 'hidden' }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', color: 'var(--black)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {friend.name}
+                        {friend.isAdmin && (
+                          <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 10, backgroundColor: '#e60023', color: '#fff', fontWeight: 600 }}>
+                            Admin
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--gray-text)' }}>
+                        @{friend.username}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                ))
+              )
+            ) : (
+              /* Friends (All registered users) Tab List */
+              friends.length === 0 ? (
+                <p style={{ fontSize: 12, color: 'var(--gray-text)', textAlign: 'center', marginTop: 20 }}>
+                  Список пользователей пуст
+                </p>
+              ) : (
+                friends.map(friend => (
+                  <div
+                    key={friend.uid}
+                    className={`friend-item ${activeFriend?.uid === friend.uid ? 'active' : ''}`}
+                    onClick={() => {
+                      setActiveFriend(friend);
+                      setSidebarTab('chats'); // Switch to dialogs view
+                    }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px',
+                      borderRadius: 12, cursor: 'pointer', marginBottom: 4,
+                      backgroundColor: activeFriend?.uid === friend.uid ? 'var(--gray-hover)' : 'transparent'
+                    }}
+                  >
+                    <img
+                      src={friend.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'}
+                      alt={friend.name}
+                      style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }}
+                    />
+                    <div style={{ overflow: 'hidden' }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', color: 'var(--black)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {friend.name}
+                        {friend.isAdmin && (
+                          <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 10, backgroundColor: '#e60023', color: '#fff', fontWeight: 600 }}>
+                            Admin
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--gray-text)' }}>
+                        @{friend.username}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )
             )}
           </div>
         </div>

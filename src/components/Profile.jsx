@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PinGrid from './PinGrid';
 
 export default function Profile({
   currentUser,
+  userProfile = null,
+  onBackToOwnProfile,
+  onStartChat,
   allPins,
   boards,
   onUpdateUser,
@@ -20,6 +23,23 @@ export default function Profile({
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [selectedBoardPins, setSelectedBoardPins] = useState(null); // When viewing a specific board's pins
+
+  const displayUser = userProfile || currentUser;
+  const isOwnProfile = !userProfile || userProfile.uid === currentUser.uid;
+  const [displayBoards, setDisplayBoards] = useState([]);
+
+  useEffect(() => {
+    async function loadBoards() {
+      try {
+        const { fetchBoards } = await import('../firebase/db');
+        const userBoards = await fetchBoards(displayUser.uid);
+        setDisplayBoards(userBoards);
+      } catch (e) {
+        console.error("Error fetching boards for user profile", e);
+      }
+    }
+    loadBoards();
+  }, [userProfile, currentUser]);
 
   // Form states for profile settings
   const [editName, setEditName] = useState(currentUser?.name || '');
@@ -75,11 +95,11 @@ export default function Profile({
   // Filter pins based on active tab
   let filteredPins = [];
   if (activeTab === 'saved') {
-    filteredPins = allPins.filter(pin => currentUser.savedPins?.includes(pin.id));
+    filteredPins = allPins.filter(pin => displayUser.savedPins?.includes(pin.id));
   } else if (activeTab === 'created') {
-    filteredPins = allPins.filter(pin => currentUser.createdPins?.includes(pin.id) || pin.creator?.uid === currentUser.uid);
+    filteredPins = allPins.filter(pin => displayUser.createdPins?.includes(pin.id) || pin.creator?.uid === displayUser.uid);
   } else if (activeTab === 'liked') {
-    filteredPins = allPins.filter(pin => currentUser.likedPins?.includes(pin.id) || pin.likedBy?.includes(currentUser.uid));
+    filteredPins = allPins.filter(pin => displayUser.likedPins?.includes(pin.id) || pin.likedBy?.includes(displayUser.uid));
   }
 
   const handleBoardClick = (board) => {
@@ -93,64 +113,92 @@ export default function Profile({
       {/* Profile Header */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 40 }}>
         <img
-          src={currentUser?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'}
-          alt={currentUser?.name}
+          src={displayUser?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'}
+          alt={displayUser?.name}
           style={{ width: 120, height: 120, borderRadius: '50%', objectFit: 'cover', marginBottom: 16, border: '1px solid var(--gray-border)' }}
         />
         <h1 style={{ fontSize: 32, fontWeight: 700, margin: '0 0 6px 0', color: 'var(--black)' }}>
-          {currentUser?.name || 'Пользователь'}
+          {displayUser?.name || 'Пользователь'}
         </h1>
         <div style={{ fontSize: 14, color: 'var(--gray-text)', fontWeight: 600, marginBottom: 12 }}>
-          @{currentUser?.username || 'username'}
+          @{displayUser?.username || 'username'}
         </div>
         <p style={{ fontSize: 15, color: 'var(--black)', maxWidth: '500px', margin: '0 auto 20px auto', lineHeight: 1.5 }}>
-          {currentUser?.bio || 'Нет описания профиля. Нажмите редактировать, чтобы добавить информацию о себе!'}
+          {displayUser?.bio || (isOwnProfile ? 'Нет описания профиля. Нажмите редактировать, чтобы добавить информацию о себе!' : 'Нет описания профиля.')}
         </p>
 
         <div style={{ display: 'flex', gap: 16, fontSize: 14, fontWeight: 600, marginBottom: 24 }}>
-          <span>{currentUser?.followersCount || 0} подписчиков</span>
+          <span>{displayUser?.followersCount || 0} подписчиков</span>
           <span>•</span>
-          <span>{currentUser?.followingCount || 0} подписок</span>
+          <span>{displayUser?.followingCount || 0} подписок</span>
         </div>
 
         <div style={{ display: 'flex', gap: 12 }}>
-          <button
-            onClick={() => {
-              setEditName(currentUser?.name || '');
-              setEditAvatar(currentUser?.avatar || '');
-              setEditBio(currentUser?.bio || '');
-              setEditUsername(currentUser?.username || '');
-              setIsEditingProfile(true);
-            }}
-            style={{
-              padding: '10px 18px', borderRadius: 24, border: 'none',
-              backgroundColor: 'rgba(230, 0, 35, 0.1)', color: '#e60023',
-              fontWeight: 700, fontSize: 14, cursor: 'pointer', transition: 'background-color 0.2s'
-            }}
-          >
-            Редактировать профиль
-          </button>
-          
-          <button
-            onClick={() => {
-              setEditGridColumns(appSettings?.gridColumns || 5);
-              setEditPrivateProfile(appSettings?.privateProfile || false);
-              setEditOnlineStatus(appSettings?.onlineStatus || false);
-              setEditSafeSearch(appSettings?.safeSearch || false);
-              setEditSoundEffects(appSettings?.soundEffects || false);
-              setEditTheme(theme || 'light');
-              setEditLang(lang || 'ru');
-              setEditFontStyle(appSettings?.fontStyle || 'standard');
-              setIsEditing(true);
-            }}
-            style={{
-              padding: '10px 18px', borderRadius: 24, border: 'none',
-              backgroundColor: 'var(--gray-light)', color: 'var(--black)',
-              fontWeight: 700, fontSize: 14, cursor: 'pointer', transition: 'background-color 0.2s'
-            }}
-          >
-            Настройки приложения
-          </button>
+          {isOwnProfile ? (
+            <>
+              <button
+                onClick={() => {
+                  setEditName(currentUser?.name || '');
+                  setEditAvatar(currentUser?.avatar || '');
+                  setEditBio(currentUser?.bio || '');
+                  setEditUsername(currentUser?.username || '');
+                  setIsEditingProfile(true);
+                }}
+                style={{
+                  padding: '10px 18px', borderRadius: 24, border: 'none',
+                  backgroundColor: 'rgba(230, 0, 35, 0.1)', color: '#e60023',
+                  fontWeight: 700, fontSize: 14, cursor: 'pointer', transition: 'background-color 0.2s'
+                }}
+              >
+                Редактировать профиль
+              </button>
+              
+              <button
+                onClick={() => {
+                  setEditGridColumns(appSettings?.gridColumns || 5);
+                  setEditPrivateProfile(appSettings?.privateProfile || false);
+                  setEditOnlineStatus(appSettings?.onlineStatus || false);
+                  setEditSafeSearch(appSettings?.safeSearch || false);
+                  setEditSoundEffects(appSettings?.soundEffects || false);
+                  setEditTheme(theme || 'light');
+                  setEditLang(lang || 'ru');
+                  setEditFontStyle(appSettings?.fontStyle || 'standard');
+                  setIsEditing(true);
+                }}
+                style={{
+                  padding: '10px 18px', borderRadius: 24, border: 'none',
+                  backgroundColor: 'var(--gray-light)', color: 'var(--black)',
+                  fontWeight: 700, fontSize: 14, cursor: 'pointer', transition: 'background-color 0.2s'
+                }}
+              >
+                Настройки приложения
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => onStartChat && onStartChat(displayUser)}
+                style={{
+                  padding: '10px 18px', borderRadius: 24, border: 'none',
+                  backgroundColor: '#e60023', color: '#fff',
+                  fontWeight: 700, fontSize: 14, cursor: 'pointer', transition: 'background-color 0.2s'
+                }}
+              >
+                Написать сообщение
+              </button>
+              
+              <button
+                onClick={onBackToOwnProfile}
+                style={{
+                  padding: '10px 18px', borderRadius: 24, border: 'none',
+                  backgroundColor: 'var(--gray-light)', color: 'var(--black)',
+                  fontWeight: 700, fontSize: 14, cursor: 'pointer', transition: 'background-color 0.2s'
+                }}
+              >
+                Назад к моему профилю
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -395,7 +443,7 @@ export default function Profile({
         </div>
       ) : activeTab === 'boards' ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 20 }}>
-          {boards?.map(board => (
+          {displayBoards?.map(board => (
             <div
               key={board.id}
               onClick={() => handleBoardClick(board)}

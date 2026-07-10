@@ -14,7 +14,7 @@ const ADMIN_INFO = {
   isAdmin: true
 };
 
-export default function Chat({ currentUser, initialActiveFriend }) {
+export default function Chat({ currentUser, initialActiveFriend, onViewUserProfile }) {
   const [friends, setFriends] = useState([]);
   const [activeFriend, setActiveFriend] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -337,7 +337,12 @@ export default function Chat({ currentUser, initialActiveFriend }) {
                     <img
                       src={friend.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'}
                       alt={friend.name}
-                      style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onViewUserProfile) onViewUserProfile(friend.uid);
+                      }}
+                      style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--gray-border)' }}
+                      title="Просмотреть профиль"
                     />
                     <div style={{ overflow: 'hidden' }}>
                       <div style={{ fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', color: 'var(--black)', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -379,7 +384,12 @@ export default function Chat({ currentUser, initialActiveFriend }) {
                     <img
                       src={friend.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'}
                       alt={friend.name}
-                      style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onViewUserProfile) onViewUserProfile(friend.uid);
+                      }}
+                      style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--gray-border)' }}
+                      title="Просмотреть профиль"
                     />
                     <div style={{ overflow: 'hidden' }}>
                       <div style={{ fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', color: 'var(--black)', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -407,11 +417,16 @@ export default function Chat({ currentUser, initialActiveFriend }) {
             <div className="chat-active" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
               
               {/* Active Conversation Header */}
-              <div className="chat-active-header" style={{ display: 'flex', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid var(--gray-border)', gap: 12 }}>
+              <div 
+                className="chat-active-header" 
+                onClick={() => onViewUserProfile && onViewUserProfile(activeFriend.uid)}
+                style={{ display: 'flex', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid var(--gray-border)', gap: 12, cursor: 'pointer' }}
+                title="Просмотреть профиль"
+              >
                 <img
                   src={activeFriend.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'}
                   alt={activeFriend.name}
-                  style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }}
+                  style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--gray-border)' }}
                 />
                 <div className="chat-active-meta">
                   <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--black)' }}>{activeFriend.name}</h4>

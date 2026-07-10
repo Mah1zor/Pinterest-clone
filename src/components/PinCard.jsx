@@ -5,7 +5,8 @@ export default function PinCard({
   currentUser,
   onOpenDetails,
   onLike,
-  onSave
+  onSave,
+  onViewUserProfile
 }) {
   const isLiked = pin.likedBy?.includes(currentUser?.uid);
 
@@ -20,6 +21,13 @@ export default function PinCard({
     e.stopPropagation();
     if (onSave) {
       onSave(pin.id);
+    }
+  };
+
+  const handleAuthorClick = (e) => {
+    e.stopPropagation();
+    if (onViewUserProfile && pin.creator?.uid) {
+      onViewUserProfile(pin.creator.uid);
     }
   };
 
@@ -79,7 +87,7 @@ export default function PinCard({
         <h3 className="pin-card-title" style={{ fontSize: 14, fontWeight: 700, margin: '4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {pin.title}
         </h3>
-        <div className="pin-card-author" style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+        <div className="pin-card-author" onClick={handleAuthorClick} style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4, cursor: 'pointer' }}>
           <img
             src={pin.creator?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=50&auto=format&fit=crop&q=80'}
             alt={pin.creator?.name}

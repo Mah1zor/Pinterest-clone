@@ -6,7 +6,8 @@ export default function PinGrid({
   currentUser,
   onOpenDetails,
   onLike,
-  onSave
+  onSave,
+  onViewUserProfile
 }) {
   if (!pins || pins.length === 0) {
     return (
@@ -29,6 +30,7 @@ export default function PinGrid({
             onOpenDetails={() => onOpenDetails(pin)}
             onLike={onLike}
             onSave={onSave}
+            onViewUserProfile={onViewUserProfile}
           />
         ))}
       </div>

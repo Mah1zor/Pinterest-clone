@@ -21,6 +21,7 @@ export default function App() {
   // Layout states
   const [view, setView] = useState('feed'); // 'feed', 'create', 'profile', 'chat'
   const [initialActiveChatFriend, setInitialActiveChatFriend] = useState(null);
+  const [viewedUser, setViewedUser] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [notificationHistory, setNotificationHistory] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -29,6 +30,31 @@ export default function App() {
     setView(newView);
     if (newView !== 'chat') {
       setInitialActiveChatFriend(null);
+    }
+    setViewedUser(null);
+  };
+
+  const handleViewUserProfile = async (userObjectOrUid) => {
+    if (!userObjectOrUid) return;
+    const targetUid = typeof userObjectOrUid === 'string' ? userObjectOrUid : userObjectOrUid.uid;
+    if (currentUser && targetUid === currentUser.uid) {
+      setViewedUser(null);
+      setView('profile');
+      return;
+    }
+    
+    let targetUser = typeof userObjectOrUid === 'object' ? userObjectOrUid : null;
+    if (!targetUser) {
+      try {
+        const { fetchUserProfile } = await import('./firebase/db');
+        targetUser = await fetchUserProfile(targetUid);
+      } catch (e) {
+        console.error("Error fetching user profile", e);
+      }
+    }
+    if (targetUser) {
+      setViewedUser(targetUser);
+      setView('profile');
     }
   };
   const [theme, setTheme] = useState(() => localStorage.getItem('pinterest_theme') || 'light');
@@ -408,6 +434,7 @@ export default function App() {
                     pins={pins}
                     currentUser={currentUser}
                     onOpenDetails={(pin) => setSelectedPin(pin)}
+                    onViewUserProfile={handleViewUserProfile}
                     onLike={async (pinId, isLiked) => {
                       const updatedPins = pins.map(p => {
                         if (p.id === pinId) {
@@ -446,10 +473,15 @@ export default function App() {
                   onNavigateHome={() => setView('feed')}
                 />
               )}
-
               {view === 'profile' && (
                 <Profile
                   currentUser={currentUser}
+                  userProfile={viewedUser}
+                  onBackToOwnProfile={() => setViewedUser(null)}
+                  onStartChat={(user) => {
+                    setInitialActiveChatFriend(user);
+                    setView('chat');
+                  }}
                   allPins={pins}
                   boards={boards}
                   onUpdateUser={(updated) => setCurrentUser(updated)}
@@ -460,6 +492,7 @@ export default function App() {
                   setTheme={setTheme}
                   lang={lang}
                   setLang={setLang}
+                  onViewUserProfile={handleViewUserProfile}
                   onLikePin={async (pinId, isLiked) => {
                     const { likePin } = await import('./firebase/db');
                     await likePin(pinId, currentUser.uid, isLiked);
@@ -478,7 +511,11 @@ export default function App() {
               )}
 
               {view === 'chat' && (
-                <Chat currentUser={currentUser} initialActiveFriend={initialActiveChatFriend} />
+                <Chat 
+                  currentUser={currentUser} 
+                  initialActiveFriend={initialActiveChatFriend} 
+                  onViewUserProfile={handleViewUserProfile}
+                />
               )}
 
               {view === 'admin' && currentUser?.isAdmin && (
@@ -518,6 +555,7 @@ export default function App() {
           onUpdatePin={handleUpdatePinInFeed}
           onRefreshBoards={loadBoardsList}
           onUpdateUser={(updated) => setCurrentUser(updated)}
+          onViewUserProfile={handleViewUserProfile}
         />
       )}
 

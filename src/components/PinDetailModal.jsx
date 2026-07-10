@@ -8,7 +8,8 @@ export default function PinDetailModal({
   onClose,
   onUpdatePin,
   onRefreshBoards,
-  onUpdateUser
+  onUpdateUser,
+  onViewUserProfile
 }) {
   const [commentText, setCommentText] = useState('');
   const [selectedBoardId, setSelectedBoardId] = useState(boards?.[0]?.id || '');
@@ -227,11 +228,20 @@ export default function PinDetailModal({
 
           {/* Creator Profile */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div 
+              onClick={() => {
+                if (onViewUserProfile && pin.creator?.uid) {
+                  onViewUserProfile(pin.creator.uid);
+                  onClose();
+                }
+              }}
+              style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+              title="Просмотреть профиль"
+            >
               <img
                 src={pin.creator?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'}
                 alt={pin.creator?.name}
-                style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }}
+                style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--gray-border)' }}
               />
               <div>
                 <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--black)' }}>
@@ -240,8 +250,8 @@ export default function PinDetailModal({
                 <div style={{ fontSize: 13, color: 'var(--gray-text)' }}>
                   @{pin.creator?.username || 'user'}
                 </div>
-              </div>
-              {pin.creator?.uid !== currentUser?.uid && (
+            </div>
+            {pin.creator?.uid !== currentUser?.uid && (
                 <button
                   onClick={handleFriendToggle}
                   className={`friend-btn ${isFriend ? 'is-friend' : ''}`}

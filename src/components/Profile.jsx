@@ -25,6 +25,7 @@ export default function Profile({
   const [editName, setEditName] = useState(currentUser?.name || '');
   const [editAvatar, setEditAvatar] = useState(currentUser?.avatar || '');
   const [editBio, setEditBio] = useState(currentUser?.bio || '');
+  const [editUsername, setEditUsername] = useState(currentUser?.username || '');
 
   // Form states for general settings
   const [editGridColumns, setEditGridColumns] = useState(appSettings?.gridColumns || 5);
@@ -59,7 +60,8 @@ export default function Profile({
       const updatedUser = await updateUserProfile(currentUser.uid, {
         name: editName.trim(),
         avatar: editAvatar.trim(),
-        bio: editBio.trim()
+        bio: editBio.trim(),
+        username: editUsername.trim().toLowerCase()
       });
       onUpdateUser(updatedUser);
       setIsEditingProfile(false);
@@ -117,6 +119,7 @@ export default function Profile({
               setEditName(currentUser?.name || '');
               setEditAvatar(currentUser?.avatar || '');
               setEditBio(currentUser?.bio || '');
+              setEditUsername(currentUser?.username || '');
               setIsEditingProfile(true);
             }}
             style={{
@@ -286,6 +289,20 @@ export default function Profile({
                   className="auth-input"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="auth-group">
+                <label className="auth-label">Имя пользователя (Ник @)</label>
+                <input
+                  type="text"
+                  className="auth-input"
+                  value={editUsername}
+                  onChange={(e) => {
+                    const cleanValue = e.target.value.replace(/@/g, '').replace(/\s+/g, '');
+                    setEditUsername(cleanValue);
+                  }}
                   required
                 />
               </div>

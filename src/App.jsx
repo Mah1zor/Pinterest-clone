@@ -322,7 +322,12 @@ export default function App() {
 
   // Display authentication overlay if no user is signed in
   if (!currentUser) {
-    return <Auth lang={lang} onAuthSuccess={(user) => setCurrentUser(user)} />;
+    return (
+      <>
+        <Auth lang={lang} onAuthSuccess={(user) => setCurrentUser(user)} />
+        <CustomCursor />
+      </>
+    );
   }
 
   return (

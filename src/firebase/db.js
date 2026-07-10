@@ -380,6 +380,20 @@ export const updateUserProfile = async (uid, data) => {
     return updated;
   }
 
+  // Check username uniqueness if they are changing it
+  if (data.username) {
+    const lowerUsername = data.username.toLowerCase().trim();
+    const currentProfile = await fetchUserProfile(uid);
+    if (currentProfile && currentProfile.username !== lowerUsername) {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('username', '==', lowerUsername));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        throw new Error('Этот никнейм уже занят другим пользователем.');
+      }
+    }
+  }
+
   const docRef = doc(db, 'users', uid);
   await updateDoc(docRef, data);
   if (data.avatar && auth.currentUser) {

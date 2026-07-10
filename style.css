@@ -673,9 +673,8 @@ input, textarea, select {
   margin-bottom: 20px;
   display: inline-block;
   width: 100%;
-  border-radius: var(--border-radius-card);
   cursor: pointer;
-  background-color: var(--white);
+  background-color: transparent;
   transition: var(--transition-smooth);
 }
 

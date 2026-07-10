@@ -43,13 +43,17 @@
   font-family: var(--font-main);
 }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 body {
   font-family: var(--font-main);
   font-size: 19px;
   font-weight: 500;
   background-color: var(--white);
   color: var(--black);
-  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
@@ -2560,6 +2564,10 @@ body.density-spacious .pin-card-info {
 }
 
 @media (max-width: 768px) {
+  .app-content {
+    padding: 16px !important;
+  }
+
   /* Bottom Nav visible on mobile */
   .bottom-nav-bar {
     display: flex;

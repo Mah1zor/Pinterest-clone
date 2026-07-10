@@ -133,7 +133,7 @@ export default function Profile({
           <span>{displayUser?.followingCount || 0} подписок</span>
         </div>
 
-        <div style={{ display: 'flex', gap: 12 }}>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
           {isOwnProfile ? (
             <>
               <button

@@ -430,10 +430,17 @@ export const fetchPins = async (category = 'all', searchQuery = '') => {
     return pins;
   }
 
-  // Real Firebase Pins fetch
+  // Real Firebase Pins fetch - fetch all sorted by date to avoid composite index requirements
   const pinsRef = collection(db, 'pins');
-  let q = query(pinsRef, orderBy('date', 'desc'));
+  const q = query(pinsRef, orderBy('date', 'desc'));
+  const querySnapshot = await getDocs(q);
   
+  let pins = [];
+  querySnapshot.forEach((doc) => {
+    pins.push({ id: doc.id, ...doc.data() });
+  });
+
+  // Client-side category filtering to prevent composite index errors
   if (category && category !== 'all') {
     const catMapping = {
       'interior': 'Интерьер',
@@ -444,16 +451,10 @@ export const fetchPins = async (category = 'all', searchQuery = '') => {
       'art': 'Арт'
     };
     const RussianCatName = catMapping[category] || category;
-    q = query(pinsRef, where('category', '==', RussianCatName), orderBy('date', 'desc'));
+    pins = pins.filter(p => p.category === RussianCatName);
   }
 
-  const querySnapshot = await getDocs(q);
-  let pins = [];
-  querySnapshot.forEach((doc) => {
-    pins.push({ id: doc.id, ...doc.data() });
-  });
-
-  // Perform search query filtering client-side for simple Firebase search
+  // Perform search query filtering client-side
   if (searchQuery) {
     const s = searchQuery.toLowerCase();
     pins = pins.filter(p => 

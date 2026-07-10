@@ -293,7 +293,7 @@ export default function App() {
 
   useEffect(() => {
     loadPinsList();
-  }, [activeCategory, searchQuery, selectedBoardId, boards]);
+  }, [activeCategory, searchQuery, selectedBoardId, boards, view]);
 
   const handleLogout = async () => {
     if (window.confirm(lang === 'ru' ? 'Вы уверены, что хотите выйти?' : 'Are you sure you want to log out?')) {

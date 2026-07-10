@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { getOrCreateChat, subscribeToChat, sendMessage, fetchUserProfile } from '../firebase/db';
 import { MOCK_USERS } from '../../data';
 import { isConfigured } from '../firebase/config';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
 const ADMIN_INFO = {
@@ -41,6 +41,21 @@ export default function Chat({ currentUser, initialActiveFriend }) {
   // Load friends/users list
   useEffect(() => {
     async function loadUsers() {
+      let adminInfo = { ...ADMIN_INFO };
+      
+      if (isConfigured) {
+        try {
+          const adminDoc = await getDoc(doc(db, 'users', 'admin-pinterest-uid'));
+          if (adminDoc.exists()) {
+            adminInfo = adminDoc.data();
+          }
+        } catch (e) {
+          console.error("Error fetching admin info from Firestore:", e);
+        }
+      }
+      
+      setResolvedAdminInfo(adminInfo);
+
       if (!isConfigured) {
         // Fallback: list other mock users
         const others = MOCK_USERS.filter(u => u.username !== currentUser.username);
@@ -54,7 +69,7 @@ export default function Chat({ currentUser, initialActiveFriend }) {
         
         if (currentUser.username !== 'admin') {
           // Prepend admin to the list of friends for normal users
-          setFriends([ADMIN_INFO, ...mappedOthers]);
+          setFriends([adminInfo, ...mappedOthers]);
         } else {
           setFriends(mappedOthers);
         }
@@ -66,13 +81,13 @@ export default function Chat({ currentUser, initialActiveFriend }) {
         const list = [];
         usersSnapshot.forEach((doc) => {
           const data = doc.data();
-          if (data.uid !== currentUser.uid && data.username !== 'admin') {
+          if (data.uid !== currentUser.uid && data.username !== 'admin' && doc.id !== 'admin-pinterest-uid') {
             list.push(data);
           }
         });
         
         if (currentUser.username !== 'admin') {
-          setFriends([ADMIN_INFO, ...list]);
+          setFriends([adminInfo, ...list]);
         } else {
           setFriends(list);
         }
@@ -146,11 +161,11 @@ export default function Chat({ currentUser, initialActiveFriend }) {
         alert("Вы не можете добавить себя в друзья.");
       } else {
         setFriends(prev => {
-          const exists = prev.some(f => f.uid === ADMIN_INFO.uid);
-          if (!exists) return [ADMIN_INFO, ...prev];
+          const exists = prev.some(f => f.uid === resolvedAdminInfo.uid);
+          if (!exists) return [resolvedAdminInfo, ...prev];
           return prev;
         });
-        setActiveFriend(ADMIN_INFO);
+        setActiveFriend(resolvedAdminInfo);
         setSearchFriend('');
       }
       return;

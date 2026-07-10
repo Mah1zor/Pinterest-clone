@@ -373,7 +373,30 @@ export const deleteUser = async (uid) => {
 };
 
 export const updateUserProfile = async (uid, data) => {
-  if (!isConfigured || uid === 'admin-pinterest-uid') {
+  if (uid === 'admin-pinterest-uid') {
+    const current = JSON.parse(localStorage.getItem('pinterest_mock_user')) || {
+      uid: 'admin-pinterest-uid',
+      name: 'Администратор',
+      username: 'admin',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      bio: 'Панель администратора Pinterest',
+      isAdmin: true
+    };
+    const updated = { ...current, ...data };
+    localStorage.setItem('pinterest_mock_user', JSON.stringify(updated));
+    
+    if (isConfigured) {
+      try {
+        const docRef = doc(db, 'users', 'admin-pinterest-uid');
+        await setDoc(docRef, updated, { merge: true });
+      } catch (e) {
+        console.error("Error saving admin to Firestore:", e);
+      }
+    }
+    return updated;
+  }
+
+  if (!isConfigured) {
     const current = JSON.parse(localStorage.getItem('pinterest_mock_user')) || CURRENT_USER;
     const updated = { ...current, ...data };
     localStorage.setItem('pinterest_mock_user', JSON.stringify(updated));

@@ -269,7 +269,7 @@ export default function Chat({ currentUser, initialActiveFriend, onViewUserProfi
       }}>
         
         {/* Left Side: Friends Panel */}
-        <div className="chat-sidebar" style={{ display: 'flex', flexDirection: 'column', width: 280, borderRight: '1px solid var(--gray-border)', padding: 16 }}>
+        <div className={`chat-sidebar ${activeFriend ? 'mobile-hidden' : ''}`} style={{ display: 'flex', flexDirection: 'column', width: 280, borderRight: '1px solid var(--gray-border)', padding: 16 }}>
           {/* Tabs header */}
           <div style={{ display: 'flex', borderBottom: '1px solid var(--gray-border)', marginBottom: 12 }}>
             <button
@@ -412,21 +412,43 @@ export default function Chat({ currentUser, initialActiveFriend, onViewUserProfi
         </div>
 
         {/* Right Side: Conversation Log */}
-        <div className="chat-window" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <div className={`chat-window ${!activeFriend ? 'mobile-hidden' : ''}`} style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
           {activeFriend ? (
             <div className="chat-active" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
               
               {/* Active Conversation Header */}
               <div 
                 className="chat-active-header" 
-                onClick={() => onViewUserProfile && onViewUserProfile(activeFriend.uid)}
-                style={{ display: 'flex', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid var(--gray-border)', gap: 12, cursor: 'pointer' }}
-                title="Просмотреть профиль"
+                style={{ display: 'flex', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid var(--gray-border)', gap: 12 }}
               >
+                {/* Back button (mobile only) */}
+                <button
+                  className="mobile-chat-back-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveFriend(null);
+                  }}
+                  style={{
+                    border: 'none',
+                    background: 'none',
+                    fontSize: 18,
+                    color: 'var(--black)',
+                    marginRight: 10,
+                    cursor: 'pointer',
+                    display: 'none',
+                    alignItems: 'center'
+                  }}
+                  title="Назад"
+                >
+                  <i className="fa-solid fa-arrow-left"></i>
+                </button>
+                
                 <img
                   src={activeFriend.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'}
                   alt={activeFriend.name}
-                  style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--gray-border)' }}
+                  onClick={() => onViewUserProfile && onViewUserProfile(activeFriend.uid)}
+                  style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--gray-border)', cursor: 'pointer' }}
+                  title="Просмотреть профиль"
                 />
                 <div className="chat-active-meta">
                   <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--black)' }}>{activeFriend.name}</h4>

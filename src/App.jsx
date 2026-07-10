@@ -545,6 +545,39 @@ export default function App() {
         </main>
       </div>
 
+      {currentUser && (
+        <div className="bottom-nav-bar">
+          <button 
+            className={`bottom-nav-item ${view === 'feed' ? 'active' : ''}`}
+            onClick={() => handleSetView('feed')}
+            title="Лента"
+          >
+            <i className="fa-solid fa-house"></i>
+          </button>
+          <button 
+            className={`bottom-nav-item ${view === 'create' ? 'active' : ''}`}
+            onClick={() => handleSetView('create')}
+            title="Создать"
+          >
+            <i className="fa-solid fa-circle-plus"></i>
+          </button>
+          <button 
+            className={`bottom-nav-item ${view === 'chat' ? 'active' : ''}`}
+            onClick={() => handleSetView('chat')}
+            title="Сообщения"
+          >
+            <i className="fa-solid fa-comment-dots"></i>
+          </button>
+          <button 
+            className={`bottom-nav-item ${view === 'profile' ? 'active' : ''}`}
+            onClick={() => handleSetView('profile')}
+            title="Профиль"
+          >
+            <i className="fa-solid fa-user"></i>
+          </button>
+        </div>
+      )}
+
       {/* Pin Detail Overlay Modal */}
       {selectedPin && (
         <PinDetailModal

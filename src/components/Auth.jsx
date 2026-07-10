@@ -62,10 +62,39 @@ export default function Auth({ lang, onAuthSuccess }) {
   return (
     <div className="auth-overlay active" id="auth-overlay">
       <div className="auth-card">
-        <div className="auth-logo">
+        <div className="auth-logo" style={{ marginBottom: 12 }}>
           <i className="fa-brands fa-pinterest"></i>
         </div>
-        <h2>{isLogin ? t.loginSubmit : t.regSubmit}</h2>
+        
+        {/* Toggle Tabs */}
+        <div style={{ display: 'flex', width: '100%', marginBottom: 24, borderBottom: '1px solid var(--gray-border)' }}>
+          <button
+            type="button"
+            onClick={() => { setIsLogin(true); setError(''); }}
+            style={{
+              flex: 1, padding: '12px 0', border: 'none', background: 'none',
+              fontWeight: 700, fontSize: 16, cursor: 'pointer',
+              color: isLogin ? '#e60023' : 'var(--gray-text)',
+              borderBottom: isLogin ? '3px solid #e60023' : '3px solid transparent',
+              transition: 'all 0.2s', marginBottom: -1
+            }}
+          >
+            Войти
+          </button>
+          <button
+            type="button"
+            onClick={() => { setIsLogin(false); setError(''); }}
+            style={{
+              flex: 1, padding: '12px 0', border: 'none', background: 'none',
+              fontWeight: 700, fontSize: 16, cursor: 'pointer',
+              color: !isLogin ? '#e60023' : 'var(--gray-text)',
+              borderBottom: !isLogin ? '3px solid #e60023' : '3px solid transparent',
+              transition: 'all 0.2s', marginBottom: -1
+            }}
+          >
+            Регистрация
+          </button>
+        </div>
         <p className="auth-subtitle">Находите новые идеи для вдохновения</p>
 
         {error && (

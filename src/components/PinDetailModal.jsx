@@ -114,24 +114,18 @@ export default function PinDetailModal({
 
   return (
     <div className="modal-overlay active" onClick={onClose} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ display: 'flex', width: '900px', maxWidth: '95%', maxHeight: '90vh', backgroundColor: 'var(--white)', borderRadius: '32px', overflow: 'hidden', position: 'relative' }}>
+      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
         
         {/* Close Button */}
         <button
           className="modal-close-btn"
           onClick={onClose}
-          style={{
-            position: 'absolute', top: 20, left: 20, zIndex: 100,
-            width: 40, height: 40, borderRadius: '50%', backgroundColor: 'var(--white)',
-            border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: 'var(--black)'
-          }}
         >
           <i className="fa-solid fa-xmark"></i>
         </button>
 
         {/* Left Side: Media */}
-        <div className="modal-media" style={{ width: '50%', backgroundColor: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        <div className="modal-media">
           <img
             src={pin.image}
             alt={pin.title}
@@ -140,7 +134,7 @@ export default function PinDetailModal({
         </div>
 
         {/* Right Side: Details & Interactivity */}
-        <div className="modal-info" style={{ width: '50%', padding: '32px', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+        <div className="modal-info">
           
           {/* Top Bar: Saving Controls */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
